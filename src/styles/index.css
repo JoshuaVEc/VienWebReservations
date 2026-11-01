@@ -1,0 +1,2229 @@
+:root {
+  --bg-outer: #262320;
+  --bg-frame: #131312;
+  --text-primary: rgba(242, 239, 233, 0.92);
+  --text-monumental: rgba(226, 224, 219, 0.84);
+  --text-muted: rgba(214, 209, 200, 0.56);
+  --pill-bg: rgba(28, 27, 26, 0.72);
+  --pill-bg-hover: rgba(46, 44, 41, 0.88);
+  --pill-border: rgba(255, 255, 255, 0.06);
+  --card-glass-bg: rgba(34, 30, 26, 0.42);
+  --card-glass-border: rgba(255, 255, 255, 0.09);
+  --accent-sand: #87725d;
+  --accent-sand-hover: #9a836c;
+  --font-display: 'Montserrat', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Montserrat', system-ui, -apple-system, sans-serif;
+  --luxury-ease: cubic-bezier(0.25, 1, 0.35, 1);
+  --silky-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cinema-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-outer);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  text-align: start;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   FIXED ARTIFICIAL WINDOW (Exact same size across all sections)
+   ========================================================================== */
+.lumiere-viewport {
+  height: 100dvh;
+  width: 100vw;
+  padding: clamp(0.75rem, 1.8vw, 1.5rem);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 75% 15%,
+    #35312c 0%,
+    #221f1c 55%,
+    #191715 100%
+  );
+}
+
+.lumiere-frame {
+  width: 100%;
+  max-width: 1720px;
+  height: calc(100dvh - clamp(1.5rem, 3.6vw, 3rem));
+  background-color: var(--bg-frame);
+  border-radius: clamp(1.5rem, 2.5vw, 2.35rem);
+  padding: 0 clamp(0.9rem, 1.6vw, 1.45rem) clamp(0.9rem, 1.6vw, 1.45rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Subtle diagonal architectural shadow rays across the dark background in Suites/Gallery/Reviews */
+.lumiere-frame.is-split-frame {
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.018) 0%,
+      rgba(0, 0, 0, 0.36) 34%,
+      rgba(255, 255, 255, 0.042) 48%,
+      rgba(0, 0, 0, 0.45) 66%,
+      rgba(255, 255, 255, 0.02) 82%,
+      rgba(0, 0, 0, 0.5) 100%
+    ),
+    #141413;
+}
+
+/* ==========================================================================
+   4-SECOND LUXURY ARCHITECTURAL INTRO PRELOADER
+   ========================================================================== */
+.lumiere-intro-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(135, 114, 93, 0.14) 0%, transparent 62%),
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.02) 0%,
+      rgba(0, 0, 0, 0.42) 38%,
+      rgba(255, 255, 255, 0.03) 52%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    #131312;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.5rem, 2.8vw, 2.5rem) clamp(1.75rem, 3.2vw, 3rem);
+  pointer-events: auto;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 0.9s var(--silky-ease),
+    transform 1.15s var(--silky-ease);
+}
+
+.lumiere-intro-loader.is-hidden {
+  opacity: 0;
+  transform: translate3d(0, -3.5%, 0) scale(1.015);
+  pointer-events: none;
+}
+
+.intro-top-bar,
+.intro-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: clamp(0.62rem, 0.72vw, 0.72rem);
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  color: rgba(214, 209, 200, 0.48);
+  text-transform: uppercase;
+}
+
+.intro-center-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.35rem, 2.5vh, 2rem);
+  text-align: center;
+}
+
+.intro-arch-emblem {
+  width: clamp(4.8rem, 6.8vw, 6.2rem);
+  height: clamp(6.2rem, 8.8vw, 8rem);
+  border-radius: 999px 999px 0.85rem 0.85rem;
+  border: 1px solid rgba(201, 169, 124, 0.28);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: intro-arch-pulse 2.4s var(--silky-ease) infinite alternate;
+}
+
+@keyframes intro-arch-pulse {
+  from {
+    border-color: rgba(201, 169, 124, 0.22);
+    transform: translateY(0) scale(0.98);
+  }
+  to {
+    border-color: rgba(201, 169, 124, 0.52);
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+.intro-monogram {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2.1rem, 3vw, 2.75rem);
+  color: rgba(242, 239, 233, 0.92);
+  line-height: 1;
+}
+
+.intro-brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.intro-brand-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  letter-spacing: 0.28em;
+  padding-left: 0.28em;
+  color: rgba(242, 239, 233, 0.92);
+}
+
+.intro-brand-subtitle {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(0.62rem, 0.75vw, 0.72rem);
+  letter-spacing: 0.22em;
+  color: rgba(201, 169, 124, 0.76);
+}
+
+.intro-progress-track {
+  width: clamp(11rem, 18vw, 16rem);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+  position: relative;
+  margin-top: 0.35rem;
+}
+
+.intro-progress-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(135, 114, 93, 0.4), #c9a97c);
+  transform-origin: left center;
+  transition: transform 0.12s linear;
+}
+
+.intro-counter {
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: rgba(242, 239, 233, 0.85);
+}
+
+/* ==========================================================================
+   INITIAL REVEAL CHOREOGRAPHY WHEN THE 4-SECOND LOADER UNVEILS HOME
+   ========================================================================== */
+.lumiere-viewport.is-intro-active .choreographed-stage.stage-home .shared-media-img.is-active-slide {
+  transform: scale(1.12);
+}
+
+.lumiere-viewport.is-intro-active .choreographed-stage.stage-home .monumental-line {
+  opacity: 0;
+  transform: translate3d(0, -115%, 0);
+}
+
+.lumiere-viewport.is-intro-active .choreographed-stage.stage-home .shared-bottom-right-dock {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0) scale(0.95);
+}
+
+.lumiere-viewport.is-intro-active .lumiere-header {
+  opacity: 0;
+  transform: translate3d(0, -16px, 0);
+}
+
+/* ==========================================================================
+   TOP NAVBAR
+   ========================================================================== */
+.lumiere-header {
+  height: clamp(4.25rem, 6.2vw, 5.5rem);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 clamp(0.75rem, 1.5vw, 1.5rem);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
+  transition:
+    padding 0.9s var(--luxury-ease),
+    opacity 0.95s var(--silky-ease) 0.15s,
+    transform 0.95s var(--silky-ease) 0.15s;
+}
+
+.brand-monogram {
+  justify-self: start;
+  color: rgba(235, 232, 226, 0.85);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2vw, 1.95rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.brand-monogram:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.nav-pills {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.35rem, 0.8vw, 0.65rem);
+  transition: transform 2.6s var(--cinema-ease);
+}
+
+.lumiere-viewport.mode-suites .lumiere-header .nav-pills {
+  transform: translate3d(-14vw, 0, 0);
+}
+
+.lumiere-viewport.mode-reviews .lumiere-header .nav-pills {
+  transform: translate3d(12vw, 0, 0);
+}
+
+.nav-pill,
+.contact-pill {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background-color: rgba(24, 24, 23, 0.85);
+  color: rgba(226, 223, 217, 0.78);
+  font-family: var(--font-sans);
+  font-size: clamp(0.65rem, 0.72vw, 0.75rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 0.62rem 1.35rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease,
+    border-color 0.35s ease,
+    transform 0.25s ease;
+}
+
+.nav-pill:hover,
+.nav-pill.is-active,
+.contact-pill:hover {
+  background-color: rgba(42, 40, 38, 0.92);
+  color: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.lang-toggle-pill {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(20, 20, 19, 0.85);
+  color: rgba(226, 223, 217, 0.55);
+  font-family: var(--font-sans);
+  font-size: clamp(0.62rem, 0.7vw, 0.72rem);
+  letter-spacing: 0.08em;
+  padding: 0.62rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.lang-toggle-pill:hover {
+  background-color: rgba(42, 40, 38, 0.92);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.lang-active {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 500;
+}
+
+.lang-inactive {
+  color: rgba(214, 209, 200, 0.42);
+}
+
+.lang-divider {
+  color: rgba(214, 209, 200, 0.28);
+}
+
+.contact-pill {
+  background-color: rgba(20, 20, 19, 0.94);
+  border-color: rgba(255, 255, 255, 0.08);
+  padding: 0.65rem 1.45rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   UNIFIED SCROLL SHELL & PERSISTENT CHOREOGRAPHED STAGE
+   ========================================================================== */
+.unified-scroll-shell {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+  border-radius: clamp(1.1rem, 1.9vw, 1.65rem);
+}
+
+.unified-scroll-shell.scroll-locked-suites {
+  overflow-y: hidden;
+}
+
+.unified-scroll-shell::-webkit-scrollbar {
+  display: none;
+}
+
+.choreographed-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  border-radius: clamp(1.1rem, 1.9vw, 1.65rem);
+  overflow: hidden;
+  container-type: size;
+  container-name: hero-stage;
+  user-select: none;
+}
+
+/* ==========================================================================
+   1. SHARED HERO / PORTRAIT MEDIA CARD (100% GPU-Composited clip-path!)
+   Zero layout reflow! Instead of animating `left` (which forces the browser
+   to recalculate layout and image aspect ratio on every pixel), we keep the
+   container at `inset: 0` and animate `clip-path` + `transform` on the GPU!
+   ========================================================================== */
+.shared-media-card {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0);
+  /* HOME: Full-bleed rounded window */
+  clip-path: inset(0% 0% 0% 0% round 1.5rem);
+  opacity: 1;
+  transition:
+    clip-path 2.8s var(--cinema-ease),
+    transform 2.8s var(--cinema-ease),
+    opacity 2.2s var(--cinema-ease);
+  will-change: clip-path, transform, opacity;
+}
+
+/* SUITES: Smoothly crops into the Right Portrait Frame (44.5% width) without layout thrashing */
+.choreographed-stage.stage-suites .shared-media-card {
+  clip-path: inset(0% 0% 0% 55.5% round 1.65rem);
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+/* REVIEWS: Smoothly crops into a Moroccan Horseshoe Arch on the Left (39% width) */
+.choreographed-stage.stage-reviews .shared-media-card {
+  clip-path: inset(2% 58% 2% 1.5% round 14rem 14rem 1.5rem 1.5rem);
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+/* GALLERY: Softly recedes into an ambient atmospheric background */
+.choreographed-stage.stage-gallery .shared-media-card {
+  clip-path: inset(0% 0% 0% 0% round 1.5rem);
+  transform: scale(1.06) translate3d(0, 0, 0);
+  opacity: 0.14;
+}
+
+.shared-media-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+  opacity: 0;
+  transform: scale(1.07) translate3d(0, 0, 0);
+  transition:
+    opacity 1.6s var(--silky-ease),
+    transform 2.8s var(--cinema-ease);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.shared-media-img.is-active-slide {
+  opacity: 1;
+  transform: scale(1.01) translate3d(0, 0, 0);
+  z-index: 2;
+}
+
+/* Slight pan to the right when in SUITES so the subject stays centered inside the right portrait */
+.choreographed-stage.stage-suites .shared-media-img.is-active-slide {
+  transform: scale(1.06) translate3d(16%, 0, 0);
+}
+
+/* Slight pan to the left when in REVIEWS so the subject stays centered inside the left arch */
+.choreographed-stage.stage-reviews .shared-media-img.is-active-slide {
+  transform: scale(1.06) translate3d(-18%, 0, 0);
+}
+
+.shared-media-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 16, 13, 0.34) 0%,
+      rgba(18, 16, 13, 0.06) 42%,
+      rgba(18, 16, 13, 0.24) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(14, 13, 12, 0.16) 0%,
+      rgba(14, 13, 12, 0.02) 50%,
+      rgba(14, 13, 12, 0.48) 100%
+    );
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   2. HOME LAYER: Stacked Monumental Typography (LU / MIÈ / RE)
+   Features the cascading vertical "falling" drop animation every time you
+   enter HOME, and smoothly rises/glides out when leaving HOME!
+   ========================================================================== */
+.home-monumental-layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  padding-left: clamp(0.6rem, 1.5vw, 1.35rem);
+  padding-bottom: clamp(0.1rem, 0.5vw, 0.35rem);
+  pointer-events: none;
+}
+
+.monumental-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-weight: 300;
+  color: var(--text-monumental);
+  text-transform: uppercase;
+  font-size: clamp(5.5rem, 17.5vw, 16.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.025em;
+  text-shadow: 0 8px 36px rgba(0, 0, 0, 0.16);
+}
+
+@supports (font-size: 1cqb) {
+  .monumental-title {
+    font-size: clamp(5rem, 32.5cqb, 18rem);
+    line-height: 0.855;
+  }
+}
+
+.monumental-mask {
+  display: block;
+  overflow: hidden;
+  padding-right: 0.08em;
+}
+
+/* When outside HOME, each syllable is lifted above its mask (-115% Y) ready to fall down */
+.monumental-line {
+  display: block;
+  width: fit-content;
+  opacity: 0;
+  transform: translate3d(0, -115%, 0);
+  will-change: transform, opacity;
+  transition:
+    opacity 1.6s var(--cinema-ease),
+    transform 1.9s var(--cinema-ease);
+  transition-delay: calc(var(--line-idx, 0) * 0.1s);
+}
+
+/* Entering HOME: Each syllable (LU -> MIÈ -> RE) falls gracefully into place from above! */
+.choreographed-stage.stage-home .monumental-line {
+  opacity: 1;
+  transform: translate3d(0, 0%, 0);
+  transition:
+    opacity 1.9s var(--silky-ease),
+    transform 2.4s var(--silky-ease);
+  transition-delay: calc(0.55s + (var(--line-idx, 0) * 0.24s));
+}
+
+/* ==========================================================================
+   3. SUITES LEFT LAYER: Triptych, RIAD LUMIÈRE MARRAKECH & Book CTA
+   ========================================================================== */
+.suites-editorial-layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 55.5%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(2.5rem, 4.5vh, 4.2rem) clamp(1.25rem, 3vw, 3.5rem) clamp(0.85rem, 1.8vh, 1.5rem);
+  text-align: center;
+  pointer-events: none;
+}
+
+.choreographed-stage.stage-suites .suites-editorial-layer {
+  pointer-events: auto;
+}
+
+.suites-center-content {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.15rem, 2.5vh, 2.25rem);
+  width: 100%;
+  max-width: 38rem;
+}
+
+.suites-choreo-item {
+  opacity: 0;
+  transform: translate3d(-64px, 18px, 0) scale(0.97);
+  will-change: transform, opacity;
+  transition:
+    opacity 1.65s var(--cinema-ease),
+    transform 2.1s var(--cinema-ease);
+  transition-delay: 0.05s;
+}
+
+.suites-choreo-thumb {
+  transform: translate3d(-44px, 24px, 0) scale(0.92);
+  transition-delay: calc((2 - var(--stagger-index, 0)) * 0.1s);
+}
+
+.choreographed-stage.stage-suites .suites-choreo-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 2.1s var(--silky-ease),
+    transform 2.45s var(--silky-ease);
+}
+
+.choreographed-stage.stage-suites .suites-choreo-thumb {
+  transition-delay: calc(0.65s + (var(--stagger-index, 0) * 0.22s));
+}
+
+.choreographed-stage.stage-suites .suites-choreo-title {
+  transition-delay: 1.15s;
+}
+
+.choreographed-stage.stage-suites .suites-choreo-subtitle {
+  transition-delay: 1.38s;
+}
+
+.choreographed-stage.stage-suites .suites-choreo-cta {
+  transition-delay: 1.62s;
+}
+
+.choreographed-stage.stage-suites .suites-choreo-scroll {
+  transition-delay: 1.85s;
+}
+
+.suites-triptych {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.35rem, 0.55vw, 0.5rem);
+}
+
+.triptych-card {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  padding: 0;
+  width: clamp(4.2rem, 5.6vw, 5.5rem);
+  aspect-ratio: 1 / 1.48;
+  border-radius: 0.45rem;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.triptych-card:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.triptych-card.is-selected {
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.triptych-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.triptych-card:hover .triptych-img {
+  transform: scale(1.07);
+}
+
+.suites-heading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.75rem, 1.3vw, 1.15rem);
+}
+
+.suites-main-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2rem, 3.65vw, 3.55rem);
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+  color: rgba(235, 232, 226, 0.9);
+  text-transform: uppercase;
+  outline: none;
+}
+
+.suites-subtitle {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(0.78rem, 0.95vw, 0.92rem);
+  letter-spacing: 0.02em;
+  color: rgba(214, 209, 200, 0.58);
+}
+
+.suites-book-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #8b7660 0%, #7a6652 100%);
+  color: rgba(246, 243, 238, 0.94);
+  font-family: var(--font-sans);
+  font-size: clamp(0.68rem, 0.78vw, 0.76rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 1.15rem 2.35rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.suites-book-btn:hover {
+  background: linear-gradient(180deg, #9a846d 0%, #87725d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.suites-scroll-indicator {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  color: rgba(214, 209, 200, 0.28);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   4. GALLERY LAYER: Curated Architectural Mosaic Grid
+   ========================================================================== */
+.gallery-stage-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1rem, 2vw, 1.75rem) clamp(1.25rem, 2.5vw, 2.25rem);
+  pointer-events: none;
+}
+
+.choreographed-stage.stage-gallery .gallery-stage-layer {
+  pointer-events: auto;
+}
+
+.gallery-choreo-item {
+  opacity: 0;
+  transform: translate3d(0, 42px, 0) scale(0.96);
+  will-change: transform, opacity;
+  transition:
+    opacity 1.5s var(--cinema-ease),
+    transform 1.85s var(--cinema-ease);
+  transition-delay: calc((6 - var(--gal-idx, 0)) * 0.05s);
+}
+
+.choreographed-stage.stage-gallery .gallery-choreo-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 1.95s var(--silky-ease),
+    transform 2.35s var(--silky-ease);
+  transition-delay: calc(0.45s + (var(--gal-idx, 0) * 0.16s));
+}
+
+.gallery-top-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(0.85rem, 1.6vh, 1.35rem);
+  flex-shrink: 0;
+}
+
+.gallery-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: #c9a97c;
+  margin-bottom: 0.25rem;
+}
+
+.gallery-main-heading {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.45rem, 2.3vw, 2.15rem);
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+.gallery-filter-pills {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.gallery-filter-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  padding: 0.52rem 1.15rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.gallery-filter-btn:hover,
+.gallery-filter-btn.is-active {
+  background: rgba(201, 169, 124, 0.18);
+  border-color: rgba(201, 169, 124, 0.45);
+  color: var(--text-primary);
+}
+
+.gallery-bento-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: clamp(0.75rem, 1.3vw, 1.2rem);
+}
+
+.gallery-mosaic-card {
+  position: relative;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #181614;
+  cursor: pointer;
+  min-height: 0;
+}
+
+.gallery-mosaic-card.aspect-arch {
+  border-radius: 6rem 6rem 1.1rem 1.1rem;
+}
+
+.gallery-mosaic-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.85s var(--silky-ease);
+}
+
+.gallery-mosaic-card:hover .gallery-mosaic-img {
+  transform: scale(1.07);
+}
+
+.gallery-mosaic-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 11, 10, 0.04) 20%,
+    rgba(12, 11, 10, 0.82) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(0.85rem, 1.4vw, 1.35rem);
+  gap: 0.2rem;
+}
+
+.gallery-card-code {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: #c9a97c;
+}
+
+.gallery-card-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.gallery-card-caption {
+  font-size: 0.72rem;
+  color: rgba(226, 223, 217, 0.68);
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   5. REVIEWS LAYER: Right Editorial Guest Chronicles + Left Arch Image
+   ========================================================================== */
+.reviews-stage-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 3.5vh, 3rem) clamp(1.5rem, 3.5vw, 4rem) clamp(4.5rem, 7vh, 5.5rem);
+  pointer-events: none;
+}
+
+.choreographed-stage.stage-reviews .reviews-stage-layer {
+  pointer-events: auto;
+}
+
+.reviews-editorial-pane {
+  width: 100%;
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.1rem, 2.2vh, 1.85rem);
+}
+
+.reviews-choreo-item {
+  opacity: 0;
+  transform: translate3d(68px, 16px, 0) scale(0.97);
+  will-change: transform, opacity;
+  transition:
+    opacity 1.65s var(--cinema-ease),
+    transform 2.1s var(--cinema-ease);
+  transition-delay: calc((4 - var(--rev-idx, 0)) * 0.06s);
+}
+
+.choreographed-stage.stage-reviews .reviews-choreo-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 2.1s var(--silky-ease),
+    transform 2.45s var(--silky-ease);
+  transition-delay: calc(0.65s + (var(--rev-idx, 0) * 0.22s));
+}
+
+.reviews-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.reviews-index {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  color: rgba(210, 204, 195, 0.45);
+  letter-spacing: 0.1em;
+}
+
+.reviews-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: #c9a97c;
+}
+
+.reviews-quote-block {
+  border-left: 1px solid rgba(201, 169, 124, 0.38);
+  padding-left: clamp(1rem, 2vw, 1.75rem);
+}
+
+.reviews-quote-text {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.15rem, 1.85vw, 1.68rem);
+  line-height: 1.48;
+  letter-spacing: 0.015em;
+  color: rgba(242, 239, 233, 0.94);
+  text-wrap: pretty;
+}
+
+.reviews-author-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.35rem;
+}
+
+.reviews-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.reviews-guest-name {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+}
+
+.reviews-guest-role {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+}
+
+.reviews-stay-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.72rem;
+  color: rgba(235, 231, 224, 0.82);
+}
+
+.reviews-rating-stars {
+  color: #c9a97c;
+  letter-spacing: 0.06em;
+}
+
+.reviews-selector-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.review-mini-pill {
+  appearance: none;
+  text-align: start;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  transition: all 0.3s ease;
+}
+
+.review-mini-pill:hover,
+.review-mini-pill.is-selected {
+  background: rgba(201, 169, 124, 0.13);
+  border-color: rgba(201, 169, 124, 0.42);
+  color: var(--text-primary);
+}
+
+.mini-pill-num {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: #c9a97c;
+}
+
+.mini-pill-name {
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-pill-date {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   6. SHARED BOTTOM-RIGHT CONTROLLER & PREVIEW CARD
+   ========================================================================== */
+.shared-bottom-right-dock {
+  position: absolute;
+  right: clamp(0.85rem, 1.6vw, 1.5rem);
+  bottom: clamp(0.85rem, 1.6vw, 1.5rem);
+  z-index: 6;
+  width: clamp(17.5rem, 23.5vw, 23.5rem);
+  padding: clamp(0.65rem, 1vw, 0.95rem);
+  border-radius: 1.25rem;
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  border: 1px solid var(--card-glass-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    width 2.8s var(--cinema-ease),
+    right 2.8s var(--cinema-ease),
+    bottom 2.8s var(--cinema-ease),
+    padding 2.8s var(--cinema-ease),
+    opacity 1.8s var(--cinema-ease),
+    transform 2.4s var(--cinema-ease),
+    background-color 2.2s var(--cinema-ease),
+    border-color 2.2s var(--cinema-ease),
+    box-shadow 2.2s var(--cinema-ease),
+    backdrop-filter 2.2s var(--cinema-ease);
+}
+
+.choreographed-stage.stage-suites .shared-bottom-right-dock {
+  width: calc(44.5% - clamp(2rem, 3.6vw, 3.5rem));
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-color: transparent;
+  box-shadow: none;
+  padding: 0.25rem 0.35rem;
+}
+
+/* In REVIEWS mode, the dock glides over to the bottom of the Left Arch Portrait! */
+.choreographed-stage.stage-reviews .shared-bottom-right-dock {
+  right: 59.5%;
+  width: calc(39% - 2rem);
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-color: transparent;
+  box-shadow: none;
+  padding: 0.25rem 0.35rem;
+}
+
+/* In GALLERY mode, the dock smoothly fades out downward */
+.choreographed-stage.stage-gallery .shared-bottom-right-dock {
+  opacity: 0;
+  transform: translate3d(0, 48px, 0) scale(0.95);
+  pointer-events: none;
+}
+
+.preview-thumb-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  margin-bottom: clamp(0.85rem, 1.3vw, 1.15rem);
+  transition:
+    grid-template-rows 2.4s var(--cinema-ease),
+    opacity 1.9s var(--cinema-ease) 0.25s,
+    transform 2.4s var(--cinema-ease),
+    margin-bottom 2.4s var(--cinema-ease);
+}
+
+.choreographed-stage:not(.stage-home) .preview-thumb-collapsible {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) scale(0.93);
+  margin-bottom: 0;
+  pointer-events: none;
+  transition:
+    grid-template-rows 2.2s var(--cinema-ease),
+    opacity 1.4s var(--cinema-ease),
+    transform 2.2s var(--cinema-ease),
+    margin-bottom 2.2s var(--cinema-ease);
+}
+
+.preview-thumb-button {
+  appearance: none;
+  border: none;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  min-height: 0;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  display: block;
+}
+
+.preview-thumb-img {
+  width: 100%;
+  aspect-ratio: 16 / 9.2;
+  object-fit: cover;
+  display: block;
+  border-radius: 0.9rem;
+  transition: transform 0.55s var(--luxury-ease);
+}
+
+.preview-thumb-button:hover .preview-thumb-img {
+  transform: scale(1.05);
+}
+
+.preview-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.2rem 0.15rem;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.preview-index {
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 0.9vw, 0.88rem);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(210, 204, 195, 0.45);
+}
+
+.preview-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.32vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.14;
+  letter-spacing: 0.045em;
+  color: rgba(242, 239, 234, 0.88);
+  text-transform: uppercase;
+  outline: none;
+  width: fit-content;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.circle-arrow-btn {
+  width: clamp(2.35rem, 2.8vw, 2.75rem);
+  height: clamp(2.35rem, 2.8vw, 2.75rem);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(240, 237, 232, 0.82);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.2s ease;
+}
+
+.circle-arrow-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: scale(1.05);
+}
+
+.circle-arrow-btn:active {
+  transform: scale(0.96);
+}
+
+/* ==========================================================================
+   HOME VIEW: About Us ("Nosotros") Section
+   ========================================================================== */
+.about-section {
+  padding: clamp(2rem, 4.5vw, 4.5rem) clamp(1rem, 3vw, 3.25rem) clamp(2.5rem, 5vw, 4.5rem);
+  border-radius: clamp(1.1rem, 1.9vw, 1.65rem);
+  background:
+    radial-gradient(circle at 85% 20%, rgba(135, 114, 93, 0.09) 0%, transparent 55%),
+    rgba(22, 21, 19, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(2.5rem, 5vw, 5.5rem);
+  align-items: center;
+}
+
+.about-story-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1.15rem, 2vw, 1.65rem);
+}
+
+.about-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.about-index {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: rgba(210, 204, 195, 0.45);
+  letter-spacing: 0.08em;
+}
+
+.about-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: #b79c7e;
+  text-transform: uppercase;
+}
+
+.about-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.75rem, 3vw, 2.85rem);
+  line-height: 1.14;
+  letter-spacing: 0.02em;
+  color: rgba(242, 239, 233, 0.94);
+  text-wrap: balance;
+  max-width: 24ch;
+}
+
+.about-lead {
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(235, 231, 224, 0.84);
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
+.about-body {
+  font-size: clamp(0.88rem, 1vw, 0.96rem);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-muted);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+
+.about-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+  width: 100%;
+  padding: clamp(1.15rem, 2vw, 1.65rem) 0;
+  margin: 0.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.about-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  line-height: 1;
+  color: rgba(242, 239, 233, 0.92);
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.about-cta-row {
+  margin-top: 0.35rem;
+}
+
+.about-explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.about-explore-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.about-explore-btn:hover svg {
+  transform: translateX(4px);
+}
+
+.about-visual-col {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 2.25rem;
+  padding-left: 2rem;
+}
+
+.about-arch-frame {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  aspect-ratio: 4 / 4.9;
+  border-radius: 14rem 14rem 1.25rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 65px rgba(0, 0, 0, 0.5);
+}
+
+.about-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.8s var(--luxury-ease);
+}
+
+.about-arch-frame:hover .about-main-img {
+  transform: scale(1.04);
+}
+
+.about-img-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 13, 12, 0.05) 0%,
+    rgba(14, 13, 12, 0.38) 100%
+  );
+  pointer-events: none;
+}
+
+.about-floating-card {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(14.5rem, 18vw, 18.5rem);
+  padding: 0.7rem;
+  border-radius: 1.1rem;
+  background: rgba(28, 25, 22, 0.68);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.48);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.about-floating-img {
+  width: 100%;
+  aspect-ratio: 16 / 9.5;
+  object-fit: cover;
+  border-radius: 0.7rem;
+  display: block;
+}
+
+.about-floating-caption {
+  padding: 0 0.25rem 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.floating-tag {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: #b79c7e;
+}
+
+.about-floating-caption p {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: rgba(235, 231, 224, 0.78);
+}
+
+/* ==========================================================================
+   Native <dialog> Modal & Top-Layer Animations
+   ========================================================================== */
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.lumiere-dialog {
+  margin: auto;
+  width: min(92vw, 34rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.5rem;
+  background: rgba(22, 20, 18, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  color: var(--text-primary);
+  padding: 0;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.75);
+
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 0.3s;
+  transition-timing-function: var(--luxury-ease);
+  transition-behavior: allow-discrete;
+}
+
+.lumiere-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+:is(.lumiere-dialog[open]):where(:not([data-closing])) {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+
+  &::backdrop {
+    background-color: rgba(10, 9, 8, 0.68);
+    backdrop-filter: blur(6px);
+
+    @starting-style {
+      background-color: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+    }
+  }
+}
+
+.dialog-inner {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialog-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: #c9a97c;
+  margin-bottom: 0.35rem;
+}
+
+.dialog-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.dialog-close-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.dialog-close-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-field label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.form-field select option {
+  background: #1a1816;
+  color: var(--text-primary);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #c9a97c;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.dialog-secondary-btn,
+.dialog-submit-btn {
+  padding: 0.78rem 1.45rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.dialog-secondary-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-muted);
+}
+
+.dialog-secondary-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dialog-submit-btn {
+  background: var(--accent-sand);
+  border: 1px solid var(--accent-sand);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.dialog-submit-btn:hover {
+  background: var(--accent-sand-hover);
+  transform: translateY(-1px);
+}
+
+.booking-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.confirmation-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(201, 169, 124, 0.16);
+  color: #c9a97c;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+
+.booking-confirmation h3 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 1.35rem;
+}
+
+.booking-confirmation p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+
+@media (max-width: 980px) {
+  .lumiere-viewport.mode-suites .lumiere-header .nav-pills,
+  .lumiere-viewport.mode-reviews .lumiere-header .nav-pills {
+    transform: none;
+  }
+
+  .choreographed-stage.stage-suites .shared-media-card,
+  .choreographed-stage.stage-reviews .shared-media-card {
+    clip-path: inset(52% 0% 0% 0% round 1.25rem);
+  }
+
+  .suites-editorial-layer,
+  .reviews-stage-layer {
+    width: 100%;
+    height: 52%;
+  }
+
+  .gallery-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .choreographed-stage.stage-suites .shared-bottom-right-dock,
+  .choreographed-stage.stage-reviews .shared-bottom-right-dock {
+    right: 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-visual-col {
+    justify-content: center;
+    padding-left: 0;
+  }
+
+  .about-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE: TABLET & MOBILE
+   Desktop (> 1100px) is untouched. Everything below only applies to smaller
+   viewports so the fixed "artificial window" layout adapts gracefully.
+   ========================================================================== */
+
+/* ---------- Small laptops / landscape tablets (≤ 1100px) ---------- */
+@media (max-width: 1100px) {
+  .nav-pill {
+    padding: 0.58rem 1rem;
+  }
+
+  .contact-pill {
+    padding: 0.6rem 1.1rem;
+  }
+
+  .lang-toggle-pill {
+    padding: 0.58rem 0.85rem;
+  }
+}
+
+/* ---------- Tablets (≤ 980px): stacked split layouts ---------- */
+@media (max-width: 980px) {
+  /* The image now spans the full width (bottom half), so the desktop
+     left/right "pan" would expose empty edges — reset it. */
+  .choreographed-stage.stage-suites .shared-media-img.is-active-slide,
+  .choreographed-stage.stage-reviews .shared-media-img.is-active-slide {
+    transform: scale(1.03) translate3d(0, 0, 0);
+  }
+
+  /* Allow the top text panels to scroll internally if content is taller
+     than the available space (scroll shell is locked in these modes). */
+  .suites-editorial-layer,
+  .reviews-stage-layer {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+
+  .suites-editorial-layer::-webkit-scrollbar,
+  .reviews-stage-layer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .suites-editorial-layer {
+    padding: clamp(1.25rem, 3dvh, 2rem) clamp(1rem, 3vw, 2rem) 0.75rem;
+  }
+
+  .reviews-stage-layer {
+    left: 0;
+    padding: clamp(1.25rem, 3dvh, 2rem) clamp(1rem, 4vw, 2.5rem) 1rem;
+  }
+
+  .suites-scroll-indicator {
+    display: none;
+  }
+
+  /* Dock no longer needs to glide across columns on tablet */
+  .choreographed-stage.stage-suites .shared-bottom-right-dock,
+  .choreographed-stage.stage-reviews .shared-bottom-right-dock {
+    bottom: 0.85rem;
+  }
+
+  .gallery-top-header {
+    flex-wrap: wrap;
+  }
+
+  .gallery-filter-pills {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Small tablets / large phones (≤ 760px): two-row navbar ---------- */
+@media (max-width: 760px) {
+  .lumiere-header {
+    height: auto;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'brand actions'
+      'nav   nav';
+    row-gap: 0.6rem;
+    padding: 0.85rem 0.35rem 0.75rem;
+  }
+
+  .brand-monogram {
+    grid-area: brand;
+  }
+
+  .header-actions {
+    grid-area: actions;
+    gap: 0.4rem;
+  }
+
+  .nav-pills {
+    grid-area: nav;
+    justify-content: center;
+    justify-content: safe center;
+    gap: 0.35rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-pill {
+    flex-shrink: 0;
+    padding: 0.6rem 1rem;
+    font-size: 0.68rem;
+  }
+
+  .lang-toggle-pill,
+  .contact-pill {
+    font-size: 0.66rem;
+    padding: 0.55rem 0.85rem;
+  }
+}
+
+/* ---------- Phones (≤ 640px) ---------- */
+@media (max-width: 640px) {
+  /* Thinner outer chrome so content gets the room */
+  .lumiere-viewport {
+    padding: 0.5rem;
+  }
+
+  .lumiere-frame {
+    height: calc(100dvh - 1rem);
+    border-radius: 1.25rem;
+    padding: 0 0.6rem 0.6rem;
+  }
+
+  .unified-scroll-shell,
+  .choreographed-stage {
+    border-radius: 1rem;
+  }
+
+  .unified-scroll-shell {
+    gap: 1.25rem;
+  }
+
+  .shared-media-card {
+    clip-path: inset(0% 0% 0% 0% round 1rem);
+  }
+
+  /* ----- Intro loader ----- */
+  .lumiere-intro-loader {
+    padding: 1.25rem 1.1rem;
+  }
+
+  .intro-top-bar,
+  .intro-bottom-bar {
+    gap: 1rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+
+  .intro-top-bar span:last-child {
+    text-align: end;
+  }
+
+  /* ----- HOME: monumental title moves to the top, dock stays at the bottom ----- */
+  .home-monumental-layer {
+    align-items: flex-start;
+    padding-top: 0.75rem;
+    padding-left: 0.6rem;
+  }
+
+  .monumental-title {
+    font-size: clamp(4rem, 30vw, 9rem);
+  }
+
+  /* Height-aware sizing: MAKANA only uses the stage height that remains
+     after reserving ~14rem at the bottom for the compact preview dock.
+     3 lines × 0.855 line-height + top padding ≈ 2.75 × font-size.
+     Also capped by width (36cqi) so the syllables never overflow sideways. */
+  @supports (font-size: 1cqi) {
+    .monumental-title {
+      font-size: clamp(3rem, min((100cqb - 14rem) / 2.75, 36cqi), 7.5rem);
+    }
+  }
+
+  .shared-bottom-right-dock {
+    right: 0.6rem;
+    bottom: 0.6rem;
+    width: min(19rem, calc(100% - 1.2rem));
+    padding: 0.6rem;
+    border-radius: 1rem;
+  }
+
+  /* HOME only: compact suites preview card so it no longer covers MAKANA.
+     (Suites/Reviews keep their own wider dock rules — higher specificity.) */
+  .choreographed-stage.stage-home .shared-bottom-right-dock {
+    width: min(13.5rem, calc(100% - 1.2rem));
+    padding: 0.45rem;
+    border-radius: 0.9rem;
+  }
+
+  .preview-thumb-collapsible {
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-thumb-button,
+  .preview-thumb-img {
+    border-radius: 0.6rem;
+  }
+
+  .preview-thumb-img {
+    /* The <img height="200"> attribute forces a fixed 200px height that
+       overrides aspect-ratio — reset it so the thumbnail becomes a short strip. */
+    height: auto;
+    aspect-ratio: 16 / 7;
+  }
+
+  .preview-card-footer {
+    gap: 0.5rem;
+    padding: 0 0.1rem 0.05rem;
+  }
+
+  .preview-index {
+    font-size: 0.66rem;
+  }
+
+  .preview-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.035em;
+  }
+
+  .preview-controls {
+    gap: 0.35rem;
+  }
+
+  .circle-arrow-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .choreographed-stage.stage-home .circle-arrow-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  /* ----- SUITES ----- */
+  .choreographed-stage.stage-suites .shared-media-card {
+    clip-path: inset(56% 0% 0% 0% round 1rem);
+  }
+
+  .suites-editorial-layer {
+    height: 56%;
+    padding: 1rem 0.75rem 0.5rem;
+  }
+
+  .suites-center-content {
+    gap: 0.85rem;
+  }
+
+  .triptych-card {
+    width: 3.3rem;
+  }
+
+  .suites-main-title {
+    font-size: clamp(1.35rem, 6.4vw, 1.9rem);
+  }
+
+  .suites-subtitle {
+    font-size: 0.74rem;
+  }
+
+  .suites-book-btn {
+    padding: 0.9rem 1.7rem;
+    font-size: 0.7rem;
+  }
+
+  .choreographed-stage.stage-suites .shared-bottom-right-dock,
+  .choreographed-stage.stage-reviews .shared-bottom-right-dock {
+    right: 0.6rem;
+    bottom: 0.5rem;
+    width: calc(100% - 1.2rem);
+  }
+
+  /* ----- REVIEWS: more room for text, smaller image strip ----- */
+  .choreographed-stage.stage-reviews .shared-media-card {
+    clip-path: inset(64% 0% 0% 0% round 1rem);
+  }
+
+  .reviews-stage-layer {
+    height: 64%;
+    align-items: flex-start;
+    padding: 1rem 0.85rem 0.75rem;
+  }
+
+  .reviews-editorial-pane {
+    gap: 0.85rem;
+  }
+
+  .reviews-quote-text {
+    font-size: clamp(0.98rem, 4.2vw, 1.15rem);
+    line-height: 1.45;
+  }
+
+  .reviews-author-meta {
+    gap: 0.6rem;
+  }
+
+  .reviews-selector-strip {
+    gap: 0.4rem;
+  }
+
+  .review-mini-pill {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .mini-pill-date {
+    display: none;
+  }
+
+  /* ----- GALLERY: scrollable single/double column ----- */
+  .gallery-stage-layer {
+    padding: 1rem 0.75rem;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+
+  .gallery-stage-layer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery-top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .gallery-filter-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.62rem;
+  }
+
+  .gallery-bento-grid {
+    flex: none;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 13rem;
+    gap: 0.6rem;
+  }
+
+  .gallery-mosaic-card {
+    border-radius: 0.9rem;
+  }
+
+  .gallery-mosaic-card.aspect-arch {
+    border-radius: 4.5rem 4.5rem 0.9rem 0.9rem;
+  }
+
+  .gallery-card-caption {
+    display: none;
+  }
+
+  /* ----- ABOUT ----- */
+  .about-section {
+    padding: 1.75rem 1rem 2rem;
+    border-radius: 1rem;
+  }
+
+  .about-grid {
+    gap: 2rem;
+  }
+
+  .about-title {
+    font-size: clamp(1.4rem, 6.5vw, 1.85rem);
+  }
+
+  .about-visual-col {
+    padding-bottom: 3rem;
+  }
+
+  .about-arch-frame {
+    max-width: 22rem;
+  }
+
+  .about-floating-card {
+    width: min(14rem, 72%);
+  }
+
+  /* ----- BOOKING DIALOG ----- */
+  .lumiere-dialog {
+    width: calc(100vw - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    overflow-y: auto;
+    border-radius: 1.15rem;
+  }
+
+  .dialog-inner {
+    padding: 1.25rem 1rem;
+    gap: 1.15rem;
+  }
+
+  /* 16px prevents iOS Safari from auto-zooming into inputs */
+  .form-field input,
+  .form-field select {
+    font-size: 1rem;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-secondary-btn,
+  .dialog-submit-btn {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+  }
+}
+
+/* ---------- Very small phones (≤ 380px) ---------- */
+@media (max-width: 380px) {
+  .nav-pill {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.62rem;
+  }
+
+  .contact-pill {
+    padding: 0.55rem 0.7rem;
+    letter-spacing: 0.04em;
+  }
+
+  .gallery-bento-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 14rem;
+  }
+
+  .reviews-selector-strip {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .mini-pill-name {
+    font-size: 0.66rem;
+  }
+}
+
+/* ---------- Phones in landscape (short height) ---------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .preview-thumb-collapsible {
+    display: none;
+  }
+
+  .monumental-title {
+    font-size: clamp(3rem, 30cqb, 8rem);
+  }
+}
