@@ -194,6 +194,8 @@ export const App: React.FC = () => {
                       isActive ? 'is-active-slide' : 'is-hidden-slide'
                     }`}
                     fetchPriority={isActive ? 'high' : 'low'}
+                    loading={isActive ? undefined : 'lazy'}
+                    decoding={isActive ? 'sync' : 'async'}
                     width="1920"
                     height="1080"
                   />
@@ -354,6 +356,7 @@ export const App: React.FC = () => {
                       className="gallery-mosaic-img"
                       style={item.objectPosition ? { objectPosition: item.objectPosition } : undefined}
                       loading="lazy"
+                      decoding="async"
                       width="600"
                       height="420"
                     />
@@ -469,6 +472,8 @@ export const App: React.FC = () => {
                     src={previewSlide.image}
                     alt={previewSlide.thumbnailAlt[lang]}
                     className="preview-thumb-img"
+                    loading="lazy"
+                    decoding="async"
                     width="360"
                     height="200"
                   />

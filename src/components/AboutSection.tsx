@@ -136,6 +136,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang, onExploreSuite
               alt={HERO_SLIDES[1].thumbnailAlt[lang]}
               className="about-main-img"
               loading="lazy"
+              decoding="async"
               width="720"
               height="900"
             />
@@ -148,6 +149,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang, onExploreSuite
               alt={HERO_SLIDES[0].thumbnailAlt[lang]}
               className="about-floating-img"
               loading="lazy"
+              decoding="async"
               width="320"
               height="200"
             />
