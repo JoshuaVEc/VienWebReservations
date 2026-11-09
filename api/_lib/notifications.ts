@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { BookingRecord, BookingStatus } from './schema';
+import { BookingRecord, BookingStatus } from './schema.js';
 
 const DEFAULT_WHATSAPP_PRIMARY = '593999002427'; // 0999 00 24 27 (Ecuador +593)
 

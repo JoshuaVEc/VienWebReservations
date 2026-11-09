@@ -1,4 +1,4 @@
-import { dbRepository } from './_lib/db';
+import { dbRepository } from './_lib/db.js';
 import {
   ApiRequest,
   ApiResponse,
@@ -6,14 +6,14 @@ import {
   getRequestOrigin,
   readJsonBody,
   sendJson,
-} from './_lib/http';
-import { syncExternalCalendarsIfNeeded } from './_lib/ical';
+} from './_lib/http.js';
+import { syncExternalCalendarsIfNeeded } from './_lib/ical.js';
 import {
   buildWhatsAppBookingUrl,
   verifyAdminPassword,
   verifyQuickActionToken,
-} from './_lib/notifications';
-import { BookingStatus, UnitId } from './_lib/schema';
+} from './_lib/notifications.js';
+import { BookingStatus, UnitId } from './_lib/schema.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   const params = getQueryParams(req);

@@ -1,6 +1,6 @@
-import { dbRepository } from './db';
-import { expandUnitsForSelection, isBookingHoldActive } from './pricing';
-import { BookingRecord, CalendarBlockRecord, UnitId } from './schema';
+import { dbRepository } from './db.js';
+import { expandUnitsForSelection, isBookingHoldActive } from './pricing.js';
+import { BookingRecord, CalendarBlockRecord, UnitId } from './schema.js';
 
 export interface ParsedICalEvent {
   externalUid: string;

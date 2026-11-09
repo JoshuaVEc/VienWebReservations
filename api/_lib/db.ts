@@ -11,7 +11,7 @@ import {
   SeasonalRateRecord,
   UnitId,
   UnitRecord,
-} from './schema';
+} from './schema.js';
 
 const DEFAULT_UNITS: UnitRecord[] = [
   {

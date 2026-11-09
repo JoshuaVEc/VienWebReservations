@@ -7,7 +7,7 @@ import {
   SeasonalRateRecord,
   UnitId,
   UnitRecord,
-} from './schema';
+} from './schema.js';
 
 export function expandUnitsForSelection(selection: BookingUnitSelection): UnitId[] {
   if (selection === 'vien-residence-experience') {

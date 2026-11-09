@@ -1,11 +1,11 @@
 import crypto from 'node:crypto';
 import { z } from 'zod';
-import { dbRepository } from './_lib/db';
-import { ApiRequest, ApiResponse, getRequestOrigin, readJsonBody, sendJson } from './_lib/http';
-import { syncExternalCalendarsIfNeeded } from './_lib/ical';
-import { buildWhatsAppBookingUrl, sendBookingNotificationEmails } from './_lib/notifications';
-import { calculateStayPricing, checkDateRangeAvailability } from './_lib/pricing';
-import { BookingRecord } from './_lib/schema';
+import { dbRepository } from './_lib/db.js';
+import { ApiRequest, ApiResponse, getRequestOrigin, readJsonBody, sendJson } from './_lib/http.js';
+import { syncExternalCalendarsIfNeeded } from './_lib/ical.js';
+import { buildWhatsAppBookingUrl, sendBookingNotificationEmails } from './_lib/notifications.js';
+import { calculateStayPricing, checkDateRangeAvailability } from './_lib/pricing.js';
+import { BookingRecord } from './_lib/schema.js';
 
 const CreateBookingSchema = z.object({
   unitSelection: z.enum(['depto-612', 'suite-311', 'vien-residence-experience']),

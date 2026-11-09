@@ -1,7 +1,7 @@
-import { dbRepository } from './_lib/db';
-import { ApiRequest, ApiResponse, getQueryParams, sendJson } from './_lib/http';
-import { generateUnitICalFeed } from './_lib/ical';
-import { UnitId } from './_lib/schema';
+import { dbRepository } from './_lib/db.js';
+import { ApiRequest, ApiResponse, getQueryParams, sendJson } from './_lib/http.js';
+import { generateUnitICalFeed } from './_lib/ical.js';
+import { UnitId } from './_lib/schema.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   if (req.method !== 'GET') {

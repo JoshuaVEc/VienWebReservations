@@ -1,12 +1,12 @@
-import { dbRepository } from './_lib/db';
-import { ApiRequest, ApiResponse, getQueryParams, sendJson } from './_lib/http';
-import { syncExternalCalendarsIfNeeded } from './_lib/ical';
+import { dbRepository } from './_lib/db.js';
+import { ApiRequest, ApiResponse, getQueryParams, sendJson } from './_lib/http.js';
+import { syncExternalCalendarsIfNeeded } from './_lib/ical.js';
 import {
   calculateStayPricing,
   checkDateRangeAvailability,
   computeOccupiedRanges,
-} from './_lib/pricing';
-import { BookingUnitSelection } from './_lib/schema';
+} from './_lib/pricing.js';
+import { BookingUnitSelection } from './_lib/schema.js';
 
 const VALID_SELECTIONS: BookingUnitSelection[] = [
   'depto-612',
