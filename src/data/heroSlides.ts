@@ -7,32 +7,47 @@ export const NAV_ITEMS: NavSection[] = ['HOME', 'SUITES', 'GALLERY', 'REVIEWS'];
 export const NAV_LABELS: Record<Language, Record<NavSection, string>> = {
   en: {
     HOME: 'HOME',
-    SUITES: 'SUITES',
+    SUITES: 'MAKANA BEACH SUITES',
     GALLERY: 'GALLERY',
     REVIEWS: 'REVIEWS',
   },
   es: {
     HOME: 'INICIO',
-    SUITES: 'SUITES',
+    SUITES: 'SUITES EN LA PLAYA MAKANA',
     GALLERY: 'GALERÍA',
     REVIEWS: 'RESEÑAS',
+  },
+};
+
+export const PAGE_TITLES: Record<Language, Record<NavSection, string>> = {
+  en: {
+    HOME: 'Vien Vacation Home — Exclusive Vacation Residences',
+    SUITES: 'Makana Beach Suites 612 & 311 — Tonsupa | Vien Vacation Home',
+    GALLERY: 'Suites & Resort Facilities Gallery | Vien Vacation Home',
+    REVIEWS: 'Guest Reviews & Reflections | Vien Vacation Home',
+  },
+  es: {
+    HOME: 'Vien Vacation Home — Residencias Vacacionales Exclusivas',
+    SUITES: 'Suites en la Playa Makana 612 y 311 — Tonsupa | Vien Vacation Home',
+    GALLERY: 'Galería de Suites e Instalaciones | Vien Vacation Home',
+    REVIEWS: 'Reseñas y Experiencias de Huéspedes | Vien Vacation Home',
   },
 };
 
 export const UI_TEXT = {
   en: {
     contactUs: 'CONTACT US',
-    introTopRight: 'SUITES 421 & 311 · DIRECT BOOKING',
-    introSubtitle: 'VACATION HOME · FULL EQUIPPED SUITES',
+    introTopRight: 'MAKANA RESORT · TONSUPA — 612 & 311',
+    introSubtitle: 'BEACHFRONT RESORT · FULL EQUIPPED SUITES',
     introStatus: 'SYNCING LIVE SUITE AVAILABILITY',
     bookYourStay: 'BOOK YOUR STAY',
     scrollDown: 'SCROLL DOWN',
-    fullEquippedTag: 'Full Equipped',
-    galleryEyebrow: '03 / VIEN VACATION HOME — SUITES 421 & 311',
-    galleryHeading: 'RESIDENCE & SUITES GALLERY',
+    fullEquippedTag: 'Full Equipped · Ocean View',
+    galleryEyebrow: '03 / MAKANA RESORT · TONSUPA — DEPTO 612 & SUITE 311',
+    galleryHeading: 'SUITES & RESORT FACILITIES',
     filterAll: 'ALL VIEWS',
-    filterArch: 'SUITES & ARCHES',
-    filterOasis: 'POOL & EXTERIOR',
+    filterArch: 'SUITES 612 & 311',
+    filterOasis: 'RESORT FACILITIES',
     reviewsEyebrow: 'GUEST CHRONICLES & ACCLAIM',
     reserveExperience: 'RESERVE THIS EXPERIENCE',
     prevAria: 'Previous Sanctuary View',
@@ -40,17 +55,17 @@ export const UI_TEXT = {
   },
   es: {
     contactUs: 'CONTÁCTANOS',
-    introTopRight: 'SUITES 421 Y 311 · RESERVA DIRECTA',
-    introSubtitle: 'CASA VACACIONAL · SUITES FULL EQUIPADAS',
+    introTopRight: 'MAKANA RESORT · TONSUPA — 612 Y 311',
+    introSubtitle: 'PRIMERA LÍNEA DE PLAYA · FULL EQUIPADAS',
     introStatus: 'SINCRONIZANDO DISPONIBILIDAD EN VIVO',
     bookYourStay: 'RESERVA TU ESTADÍA',
     scrollDown: 'DESLIZA HACIA ABAJO',
-    fullEquippedTag: 'Full Equipada',
-    galleryEyebrow: '03 / VIEN VACATION HOME — SUITES 421 Y 311',
-    galleryHeading: 'GALERÍA DE SUITES Y RESIDENCIA',
+    fullEquippedTag: 'Full Equipada · Vista al Mar',
+    galleryEyebrow: '03 / MAKANA RESORT · TONSUPA — DEPTO 612 Y SUITE 311',
+    galleryHeading: 'GALERÍA DE SUITES E INSTALACIONES',
     filterAll: 'TODAS LAS VISTAS',
-    filterArch: 'SUITES Y ARCOS',
-    filterOasis: 'PISCINA Y EXTERIOR',
+    filterArch: 'SUITES 612 Y 311',
+    filterOasis: 'INSTALACIONES DEL RESORT',
     reviewsEyebrow: 'RESEÑAS Y EXPERIENCIAS DE HUÉSPEDES',
     reserveExperience: 'RESERVAR ESTA EXPERIENCIA',
     prevAria: 'Vista anterior',
@@ -70,7 +85,6 @@ export interface HeroSlide {
   suiteName: Record<Language, string>;
   capacityLabel: Record<Language, string>;
   bedsLabel: Record<Language, string>;
-  amenitiesLabel: Record<Language, string>;
   maxGuests: number;
   nightlyRate: Record<Language, string>;
   icalSyncReady: boolean;
@@ -78,41 +92,77 @@ export interface HeroSlide {
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
-    id: 'suite-421',
-    unitNumber: '421',
+    id: 'vien-residence-experience',
+    unitNumber: '612 & 311',
     indexLabel: '01/',
     titleLine1: {
-      en: 'SUITE 421',
-      es: 'SUITE 421',
+      en: 'MAKANA RESORT',
+      es: 'MAKANA RESORT',
     },
     titleLine2: {
-      en: '2 QUEEN · 4 GUESTS',
-      es: '2 CAMAS QUEEN · 4 PERSONAS',
+      en: 'TONSUPA · OCEAN VIEW',
+      es: 'TONSUPA · VISTA AL MAR',
     },
     subtitle: {
-      en: 'Fully equipped luxury vacation residence featuring two Queen beds, private kitchen, high-speed Wi-Fi, and seamless smart check-in.',
-      es: 'Residencia vacacional de lujo totalmente equipada con dos camas Queen, cocina privada, Wi-Fi de alta velocidad y check-in inteligente.',
+      en: 'Beachfront resort in Tonsupa featuring swimming pools, jacuzzi, gym, restaurant, and 24/7 security. Book Departamento 612 or Suite 311 individually or together.',
+      es: 'Ubicado en primera línea de playa en Tonsupa con complejo de piscinas, jacuzzi, gimnasio, restaurante y seguridad 24/7. Reserva el Departamento 612 o la Suite 311.',
     },
     image: '/images/hero-sunset-makana.webp',
     thumbnailAlt: {
-      en: 'Vien Vacation Home — Suite 421 exterior and pool sanctuary view',
-      es: 'Vien Vacation Home — Vista exterior y piscina de la Suite 421',
+      en: 'Makana Resort Tonsupa — Ocean sunset and beachfront sanctuary view',
+      es: 'Makana Resort Tonsupa — Atardecer en primera línea de playa con vista al mar',
     },
     suiteName: {
-      en: 'Suite 421 — 2 Queen Beds (Up to 4 Guests)',
-      es: 'Suite 421 — 2 Camas Queen (Hasta 4 Personas)',
+      en: 'Dual Booking — Departamento 612 + Suite 311 (Makana Resort · Tonsupa)',
+      es: 'Reserva Doble — Departamento 612 + Suite 311 (Makana Resort · Tonsupa)',
     },
     capacityLabel: {
-      en: 'Up to 4 Guests',
-      es: 'Hasta 4 Personas',
+      en: 'Up to 8 Guests · Makana Resort',
+      es: 'Hasta 8 Huéspedes · Makana Resort',
     },
     bedsLabel: {
-      en: '2 Queen Beds',
-      es: '2 Camas Queen',
+      en: 'Depto 612 & Suite 311',
+      es: 'Depto 612 y Suite 311',
     },
-    amenitiesLabel: {
-      en: 'Full Equipped Kitchen · Living Area · High-Speed Wi-Fi · A/C',
-      es: 'Cocina Full Equipada · Sala · Wi-Fi Alta Velocidad · A/C',
+    maxGuests: 8,
+    nightlyRate: {
+      en: 'Makana Resort Tonsupa · Direct Availability',
+      es: 'Makana Resort Tonsupa · Disponibilidad Directa',
+    },
+    icalSyncReady: true,
+  },
+  {
+    id: 'depto-612',
+    unitNumber: '612',
+    indexLabel: '02/',
+    titleLine1: {
+      en: 'DEPARTAMENTO 612',
+      es: 'DEPARTAMENTO 612',
+    },
+    titleLine2: {
+      en: 'FULL EQUIPPED · OCEAN VIEW',
+      es: 'FULL EQUIPADO · VISTA AL MAR',
+    },
+    subtitle: {
+      en: 'Located at Makana Resort — Tonsupa. Features 2 Full/Queen beds (2 plazas), armchair & dining table, equipped kitchen, A/C, Wi-Fi, modern bathroom, living-dining area, and ocean-view balcony.',
+      es: 'Ubicado en Makana Resort — Tonsupa. Cuenta con 2 camas de 2 plazas, sillón y mesa comedor, cocina equipada, aire acondicionado, Wi-Fi, baño moderno, área de sala-comedor y balcón con vista al mar.',
+    },
+    image: '/images/apt-612/apt612-4.jpg',
+    thumbnailAlt: {
+      en: 'Makana Resort Tonsupa — Departamento 612 bedroom with 2 beds and full equipment',
+      es: 'Makana Resort Tonsupa — Departamento 612 con 2 camas de 2 plazas y equipamiento completo',
+    },
+    suiteName: {
+      en: 'Departamento 612 — Full Equipped | Ocean View (Makana Resort)',
+      es: 'Departamento 612 — Full Equipado | Vista al Mar (Makana Resort)',
+    },
+    capacityLabel: {
+      en: 'Makana Resort · Tonsupa',
+      es: 'Makana Resort · Tonsupa',
+    },
+    bedsLabel: {
+      en: '2 Beds (2 Plazas) · Living & Dining Area',
+      es: '2 Camas de 2 Plazas · Sillón y Mesa Comedor',
     },
     maxGuests: 4,
     nightlyRate: {
@@ -124,88 +174,40 @@ export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'suite-311',
     unitNumber: '311',
-    indexLabel: '02/',
+    indexLabel: '03/',
     titleLine1: {
       en: 'SUITE 311',
       es: 'SUITE 311',
     },
     titleLine2: {
-      en: '2 QUEEN · 4 GUESTS',
-      es: '2 CAMAS QUEEN · 4 PERSONAS',
+      en: '3RD FLOOR · 49 M² · OCEAN VIEW',
+      es: 'TERCER PISO · 49 M² · VISTA AL MAR',
     },
     subtitle: {
-      en: 'Fully equipped vacation suite for 4 guests with two plush Queen beds, complete kitchen & dining area, and resort amenities.',
-      es: 'Suite vacacional totalmente equipada para 4 personas con dos cómodas camas Queen, cocina completa, comedor y amenidades de lujo.',
+      en: 'Located on the 3rd floor (49 m²) at Makana Resort — Tonsupa. Full equipped with 2 beds (2 plazas), sofa bed, equipped kitchen, A/C, Wi-Fi, modern bathroom, and ocean-view balcony.',
+      es: 'Ubicada en el tercer piso (49 m²) en Makana Resort — Tonsupa. Full equipada con 2 camas de 2 plazas, sofá cama, cocina equipada, aire acondicionado, Wi-Fi, baño moderno y balcón con vista al mar.',
     },
-    image: '/images/hero-riad.png',
+    image: '/images/suite-311/img-05.jpg',
     thumbnailAlt: {
-      en: 'Vien Vacation Home — Suite 311 bright interior architecture',
-      es: 'Vien Vacation Home — Interior iluminado de la Suite 311',
+      en: 'Makana Resort Tonsupa — Suite 311 3rd floor 49m2 with 2 beds and sofa bed',
+      es: 'Makana Resort Tonsupa — Suite 311 tercer piso 49m² con 2 camas de 2 plazas y sofá cama',
     },
     suiteName: {
-      en: 'Suite 311 — 2 Queen Beds (Up to 4 Guests)',
-      es: 'Suite 311 — 2 Camas Queen (Hasta 4 Personas)',
+      en: 'Suite 311 — 3rd Floor | 49 m² | Ocean View (Makana Resort)',
+      es: 'Suite 311 — Tercer Piso | 49 m² | Vista al Mar (Makana Resort)',
     },
     capacityLabel: {
-      en: 'Up to 4 Guests',
-      es: 'Hasta 4 Personas',
+      en: '3rd Floor · 49 m² · Makana Resort',
+      es: 'Tercer Piso · 49 m² · Makana Resort',
     },
     bedsLabel: {
-      en: '2 Queen Beds',
-      es: '2 Camas Queen',
-    },
-    amenitiesLabel: {
-      en: 'Full Equipped Kitchen · Living Area · High-Speed Wi-Fi · A/C',
-      es: 'Cocina Full Equipada · Sala · Wi-Fi Alta Velocidad · A/C',
+      en: '2 Beds (2 Plazas) + Sofa Bed',
+      es: '2 Camas de 2 Plazas + Sofá Cama',
     },
     maxGuests: 4,
     nightlyRate: {
       en: 'Direct Rate · Syncs with Airbnb & Booking.com',
       es: 'Tarifa Directa · Sincronizada con Airbnb y Booking.com',
-    },
-    icalSyncReady: true,
-  },
-  {
-    id: 'vien-residence-experience',
-    unitNumber: '421 & 311',
-    indexLabel: '03/',
-    titleLine1: {
-      en: 'FULL EQUIPPED',
-      es: 'SUITES FULL',
-    },
-    titleLine2: {
-      en: 'VACATION HOME',
-      es: 'EQUIPADAS',
-    },
-    subtitle: {
-      en: 'Book Suite 421 or Suite 311 individually (4 guests each) or together for groups up to 8 guests with real-time calendar availability.',
-      es: 'Reserva la Suite 421 o la Suite 311 individualmente (4 personas c/u) o ambas para grupos de hasta 8 personas con calendario en tiempo real.',
-    },
-    image: '/images/hero-dining.png',
-    thumbnailAlt: {
-      en: 'Vien Vacation Home evening ambiance and lounge',
-      es: 'Vien Vacation Home ambiente nocturno y terraza',
-    },
-    suiteName: {
-      en: 'Dual Suite Buyout (Suite 421 + Suite 311 · Up to 8 Guests)',
-      es: 'Reserva Doble (Suite 421 + Suite 311 · Hasta 8 Personas)',
-    },
-    capacityLabel: {
-      en: 'Up to 8 Guests (Both Suites)',
-      es: 'Hasta 8 Personas (Ambas Suites)',
-    },
-    bedsLabel: {
-      en: '4 Queen Beds Total',
-      es: '4 Camas Queen en Total',
-    },
-    amenitiesLabel: {
-      en: '2 Full Equipped Suites · Ideal for Families & Groups',
-      es: '2 Suites Full Equipadas · Ideal para Familias y Grupos',
-    },
-    maxGuests: 8,
-    nightlyRate: {
-      en: 'Combined Group Stay · Direct Availability',
-      es: 'Estadía Grupal Combinada · Disponibilidad Directa',
     },
     icalSyncReady: true,
   },
@@ -225,113 +227,113 @@ export interface GalleryItem {
 export const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 'gal-1',
-    code: { en: '01 / SUITE 421', es: '01 / SUITE 421' },
+    code: { en: '01 / DEPTO 612', es: '01 / DEPTO 612' },
     title: {
-      en: 'SUITE 421 — MASTER & QUEEN LOUNGE',
-      es: 'SUITE 421 — SALA Y CAMAS QUEEN',
+      en: 'DEPARTAMENTO 612 — FULL EQUIPPED & OCEAN VIEW',
+      es: 'DEPARTAMENTO 612 — FULL EQUIPADO · VISTA AL MAR',
     },
     location: {
-      en: '4 GUESTS · 2 QUEEN BEDS',
-      es: '4 PERSONAS · 2 CAMAS QUEEN',
+      en: '2 BEDS (2 PLAZAS) · LIVING-DINING',
+      es: '2 CAMAS DE 2 PLAZAS · SALA-COMEDOR',
     },
     aspect: 'arch',
-    image: '/images/hero-riad.png',
+    image: '/images/apt-612/apt612-2.jpg',
     caption: {
-      en: 'Two plush Queen beds, natural daylight, and full apartment equipment.',
-      es: 'Dos cómodas camas Queen, luz natural y equipamiento completo.',
+      en: '2 beds (2 plazas), armchair & dining table, equipped kitchen, A/C, Wi-Fi, modern bathroom, and ocean-view balcony.',
+      es: '2 camas de 2 plazas, sillón y mesa comedor, cocina equipada, A/C, Wi-Fi, baño moderno y balcón con vista al mar.',
     },
   },
   {
     id: 'gal-2',
-    code: { en: '02 / GROUNDS', es: '02 / EXTERIORES' },
+    code: { en: '02 / FACILITIES', es: '02 / INSTALACIONES' },
     title: {
-      en: 'VIEN VACATION HOME — POOL & TERRACE',
-      es: 'VIEN VACATION HOME — PISCINA Y TERRAZA',
+      en: 'MAKANA RESORT — POOLS & JACUZZI',
+      es: 'MAKANA RESORT — COMPLEJO DE PISCINAS Y JACUZZI',
     },
     location: {
-      en: 'RESIDENCE EXTERIOR',
-      es: 'EXTERIOR DE LA RESIDENCIA',
+      en: 'TONSUPA BEACHFRONT',
+      es: 'PRIMERA LÍNEA DE PLAYA · TONSUPA',
     },
     aspect: 'wide',
     image: '/images/facility-pool-terrace.webp',
     objectPosition: 'center 60%',
     caption: {
-      en: 'Relaxing reflection pool and warm sunset views right outside your suite.',
-      es: 'Piscina relajante y cálidas vistas al atardecer frente a tu suite.',
+      en: 'Oceanfront swimming pool complex, jacuzzi, and sun terrace at Makana Resort — Tonsupa.',
+      es: 'Complejo de piscinas frente al mar, jacuzzi y solárium en Makana Resort — Tonsupa.',
     },
   },
   {
     id: 'gal-3',
     code: { en: '03 / SUITE 311', es: '03 / SUITE 311' },
     title: {
-      en: 'SUITE 311 — FULL EQUIPPED LIVING',
-      es: 'SUITE 311 — ESTANCIA FULL EQUIPADA',
+      en: 'SUITE 311 — 3RD FLOOR · 49 M² · OCEAN VIEW',
+      es: 'SUITE 311 — TERCER PISO · 49 M² · VISTA AL MAR',
     },
     location: {
-      en: '4 GUESTS · 2 QUEEN BEDS',
-      es: '4 PERSONAS · 2 CAMAS QUEEN',
+      en: '2 BEDS (2 PLAZAS) + SOFA BED',
+      es: '2 CAMAS DE 2 PLAZAS + SOFÁ CAMA',
     },
     aspect: 'tall',
-    image: '/images/hero-dining.png',
+    image: '/images/suite-311/img-02.jpg',
     caption: {
-      en: 'Identical comfort to Suite 421: 2 Queen beds, full kitchen, and dining space.',
-      es: 'El mismo confort de la Suite 421: 2 camas Queen, cocina equipada y comedor.',
+      en: 'Full equipped 49 m² suite on the 3rd floor: 2 beds (2 plazas), sofa bed, equipped kitchen, A/C, Wi-Fi, modern bath, and ocean-view balcony.',
+      es: 'Suite de 49 m² en tercer piso: 2 camas de 2 plazas, sofá cama, cocina equipada, A/C, Wi-Fi, baño moderno y balcón con vista al mar.',
     },
   },
   {
     id: 'gal-4',
-    code: { en: '04 / AMENITIES', es: '04 / AMENIDADES' },
+    code: { en: '04 / FACILITIES', es: '04 / INSTALACIONES' },
     title: {
-      en: 'RESORT POOL & SUN DECK',
-      es: 'PISCINA Y SOLÁRIUM',
+      en: 'RESORT POOL COMPLEX & RESTAURANT',
+      es: 'PISCINAS, RESTAURANTE Y GIMNASIO',
     },
     location: {
-      en: 'SHARED SANCTUARY',
-      es: 'ÁREA SOCIAL EXCLUSIVA',
+      en: 'MAKANA RESORT · TONSUPA',
+      es: 'MAKANA RESORT · TONSUPA',
     },
     aspect: 'wide',
     image: '/images/facility-pool-aerial.webp',
     objectPosition: 'center 45%',
     caption: {
-      en: 'Exclusive access for Suite 421 and Suite 311 guests.',
-      es: 'Acceso exclusivo para los huéspedes de las Suites 421 y 311.',
+      en: 'Exclusive resort facilities: swimming pools, jacuzzi, gym, restaurant, and 24/7 security.',
+      es: 'Instalaciones exclusivas: complejo de piscinas, jacuzzi, gimnasio, restaurante y seguridad 24/7.',
     },
   },
   {
     id: 'gal-5',
-    code: { en: '05 / COMFORT', es: '05 / CONFORT' },
+    code: { en: '05 / FACILITIES', es: '05 / INSTALACIONES' },
     title: {
-      en: 'PRIVATE KITCHEN & DINING',
-      es: 'COCINA PRIVADA Y COMEDOR',
+      en: 'BEACHFRONT LOCATION — TONSUPA',
+      es: 'UBICADO EN PRIMERA LÍNEA DE PLAYA',
     },
     location: {
-      en: 'SUITES 421 & 311',
-      es: 'SUITES 421 Y 311',
+      en: 'TONSUPA BEACH',
+      es: 'PLAYA DE TONSUPA',
     },
     aspect: 'tall',
-    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1200&q=85',
+    image: '/images/facility-beach-view.webp',
     caption: {
-      en: 'Fully equipped for short stays or extended family vacations.',
-      es: 'Totalmente equipadas para estadías cortas o vacaciones familiares.',
+      en: 'Direct beachfront access on the Tonsupa coast with panoramic Pacific Ocean views.',
+      es: 'Salida directa a la playa de Tonsupa con vistas panorámicas al océano desde tu balcón.',
     },
   },
   {
     id: 'gal-6',
-    code: { en: '06 / ARCHITECTURE', es: '06 / ARQUITECTURA' },
+    code: { en: '06 / FACILITIES', es: '06 / INSTALACIONES' },
     title: {
-      en: 'QUIET LUXURY DETAILS',
-      es: 'DETALLES DE LUJO Y CONFORT',
+      en: 'GARDENS, GYM & 24/7 SECURITY',
+      es: 'JARDINES, GIMNASIO Y SEGURIDAD 24/7',
     },
     location: {
-      en: 'VIEN VACATION HOME',
-      es: 'VIEN VACATION HOME',
+      en: 'MAKANA RESORT · TONSUPA',
+      es: 'MAKANA RESORT · TONSUPA',
     },
     aspect: 'arch',
-    image: '/images/facility-architecture.webp',
+    image: '/images/facility-gardens.webp',
     objectPosition: 'center 40%',
     caption: {
-      en: 'Seamless self check-in and direct Booking.com / Airbnb calendar sync.',
-      es: 'Auto check-in sin complicaciones y calendario sincronizado con Booking y Airbnb.',
+      en: 'Located in one of the best resorts in Tonsupa with 24/7 security, gym, and restaurant.',
+      es: 'Ubicado en uno de los mejores resorts de Tonsupa con seguridad 24/7, gimnasio y restaurante.',
     },
   },
 ];
@@ -353,69 +355,69 @@ export const REVIEW_ITEMS: ReviewItem[] = [
     id: 'rev-1',
     indexLabel: '01 / 03',
     quote: {
-      en: '“Suite 421 at Vien Vacation Home was spotless and truly full equipped. Travelling as a family of 4, having two comfortable Queen beds and a complete kitchen made our stay effortless.”',
-      es: '“La Suite 421 en Vien Vacation Home estaba impecable y verdaderamente full equipada. Viajando en familia de 4, tener dos camas Queen súper cómodas y cocina completa hizo nuestra estadía perfecta.”',
+      en: '“Departamento 612 at Makana Resort — Tonsupa was spotless and truly full equipped. Having two comfortable 2-plaza beds, a living-dining area, equipped kitchen, and ocean-view balcony made our family stay effortless.”',
+      es: '“El Departamento 612 en Makana Resort — Tonsupa estaba impecable y verdaderamente full equipado. Tener 2 camas de 2 plazas, área de sala-comedor, cocina equipada y balcón con vista al mar hizo nuestra estadía perfecta.”',
     },
     guestName: 'CARLOS & ELENA MENDOZA',
     guestTitle: {
-      en: 'VERIFIED AIRBNB GUESTS — MIAMI',
-      es: 'HUÉSPEDES VERIFICADOS DE AIRBNB — MIAMI',
+      en: 'VERIFIED AIRBNB GUESTS — QUITO',
+      es: 'HUÉSPEDES VERIFICADOS DE AIRBNB — QUITO',
     },
     staySuite: {
-      en: 'Suite 421 · 2 Queen Beds (4 Guests)',
-      es: 'Suite 421 · 2 Camas Queen (4 Personas)',
+      en: 'Departamento 612 · Full Equipped | Ocean View',
+      es: 'Departamento 612 · Full Equipado | Vista al Mar',
     },
     stayDate: {
       en: 'OCTOBER 2026',
       es: 'OCTUBRE 2026',
     },
     rating: '5.0 / 5.0',
-    slideIndex: 0,
+    slideIndex: 1,
   },
   {
     id: 'rev-2',
     indexLabel: '02 / 03',
     quote: {
-      en: '“We booked Suite 311 directly and loved every detail. The beds are super comfortable, the Wi-Fi is fast, and everything you need is already in the suite. Way better than a standard hotel room.”',
-      es: '“Reservamos la Suite 311 directamente y nos encantó cada detalle. Las camas son comodísimas, el Wi-Fi es rápido y todo lo que necesitas ya está en la suite. Mucho mejor que un hotel tradicional.”',
+      en: '“We booked Suite 311 (3rd floor, 49 m²) directly and loved every detail. Two 2-plaza beds, sofa bed, fast Wi-Fi, A/C, equipped kitchen, and the balcony overlooking the beach at Makana Resort.”',
+      es: '“Reservamos la Suite 311 (tercer piso, 49 m²) directamente y nos encantó cada detalle. Dos camas de 2 plazas, sofá cama, Wi-Fi rápido, aire acondicionado, cocina equipada y balcón con vista al mar en Makana Resort.”',
     },
     guestName: 'SOPHIE LAURENT',
     guestTitle: {
-      en: 'VERIFIED BOOKING.COM GUEST — MONTREAL',
-      es: 'HUÉSPED VERIFICADA DE BOOKING.COM — MONTREAL',
+      en: 'VERIFIED BOOKING.COM GUEST — GUAYAQUIL',
+      es: 'HUÉSPED VERIFICADA DE BOOKING.COM — GUAYAQUIL',
     },
     staySuite: {
-      en: 'Suite 311 · 2 Queen Beds (4 Guests)',
-      es: 'Suite 311 · 2 Camas Queen (4 Personas)',
+      en: 'Suite 311 · 3rd Floor | 49 m² | Ocean View',
+      es: 'Suite 311 · Tercer Piso | 49 m² | Vista al Mar',
     },
     stayDate: {
       en: 'SEPTEMBER 2026',
       es: 'SEPTIEMBRE 2026',
     },
     rating: '5.0 / 5.0',
-    slideIndex: 1,
+    slideIndex: 2,
   },
   {
     id: 'rev-3',
     indexLabel: '03 / 03',
     quote: {
-      en: '“Our group of 8 reserved both Suite 421 and Suite 311. Having two identical, fully equipped suites in the same property with instant calendar confirmation was a 10/10 experience.”',
-      es: '“Nuestro grupo de 8 personas reservó tanto la Suite 421 como la Suite 311. Tener dos suites idénticas y totalmente equipadas en la misma propiedad con confirmación inmediata fue un 10/10.”',
+      en: '“Makana Resort is the best beachfront resort in Tonsupa. Between the swimming pools, jacuzzi, gym, restaurant, and 24/7 security, reserving both Departamento 612 and Suite 311 was a 10/10 experience.”',
+      es: '“Makana Resort es el mejor resort en primera línea de playa de Tonsupa. Entre el complejo de piscinas, jacuzzi, gimnasio, restaurante y seguridad 24/7, reservar el Departamento 612 y la Suite 311 fue un 10/10.”',
     },
     guestName: 'DANIEL & FRIENDS',
     guestTitle: {
-      en: 'DIRECT RESERVATION — MADRID',
-      es: 'RESERVA DIRECTA — MADRID',
+      en: 'DIRECT RESERVATION — CUENCA',
+      es: 'RESERVA DIRECTA — CUENCA',
     },
     staySuite: {
-      en: 'Suite 421 + Suite 311 (8 Guests)',
-      es: 'Suite 421 + Suite 311 (8 Personas)',
+      en: 'Makana Resort Tonsupa · Depto 612 + Suite 311',
+      es: 'Makana Resort Tonsupa · Depto 612 + Suite 311',
     },
     stayDate: {
       en: 'AUGUST 2026',
       es: 'AGOSTO 2026',
     },
     rating: '5.0 / 5.0',
-    slideIndex: 2,
+    slideIndex: 0,
   },
 ];

@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   GALLERY_ITEMS,
   HERO_SLIDES,
   Language,
   NavSection,
+  PAGE_TITLES,
   REVIEW_ITEMS,
   UI_TEXT,
 } from './data/heroSlides';
@@ -11,7 +12,18 @@ import { Navbar } from './components/Navbar';
 import { BookingDialog } from './components/BookingDialog';
 import { AboutSection } from './components/AboutSection';
 
+const AdminDashboard = lazy(() =>
+  import('./components/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
+
 export const App: React.FC = () => {
+  const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.location.pathname.startsWith('/admin') ||
+      new URLSearchParams(window.location.search).get('admin') === '1'
+    );
+  });
   const [lang, setLang] = useState<Language>('es');
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeNav, setActiveNav] = useState<NavSection>('HOME');
@@ -19,12 +31,15 @@ export const App: React.FC = () => {
   const [activeGalleryFilter, setActiveGalleryFilter] = useState<'ALL' | 'ARCH' | 'OASIS'>('ALL');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isIntroLoading, setIsIntroLoading] = useState(true);
-  const [introProgress, setIntroProgress] = useState(0);
+
+  const scrollShellRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+  const progressCounterRef = useRef<HTMLSpanElement>(null);
 
   const t = UI_TEXT[lang];
   const currentSlide = HERO_SLIDES[activeIndex];
   const nextSlideIndex = (activeIndex + 1) % HERO_SLIDES.length;
-  const previewSlide = activeIndex === 1 ? HERO_SLIDES[0] : HERO_SLIDES[nextSlideIndex];
+  const previewSlide = HERO_SLIDES[nextSlideIndex];
 
   const isHome = activeNav === 'HOME';
   const isSuites = activeNav === 'SUITES';
@@ -35,18 +50,26 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-  }, [lang]);
+    document.title = PAGE_TITLES[lang][activeNav];
+  }, [lang, activeNav]);
 
   useEffect(() => {
     const startTime = performance.now();
     const totalDuration = 3400;
-    let rafId: number;
+    let rafId = 0;
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const ratio = Math.min(1, elapsed / totalDuration);
       const eased = 1 - Math.pow(1 - ratio, 2.6);
-      setIntroProgress(Math.round(eased * 100));
+      const pct = Math.round(eased * 100);
+
+      if (progressFillRef.current) {
+        progressFillRef.current.style.transform = `scaleX(${pct / 100})`;
+      }
+      if (progressCounterRef.current) {
+        progressCounterRef.current.textContent = `${String(pct).padStart(2, '0')}%`;
+      }
 
       if (ratio < 1) {
         rafId = requestAnimationFrame(tick);
@@ -64,36 +87,42 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  const handleSelectNav = useCallback(
-    (label: NavSection) => {
-      if (label === activeNav) return;
-      document.querySelector('.unified-scroll-shell')?.scrollTo({ top: 0, behavior: 'smooth' });
-      setActiveNav(label);
-    },
-    [activeNav]
-  );
+  const handleSelectNav = useCallback((label: NavSection) => {
+    setActiveNav((prev) => {
+      if (label === prev) return prev;
+      scrollShellRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return label;
+    });
+  }, []);
 
-  const handleSelectSlide = useCallback(
-    (targetIndex: number) => {
-      if (targetIndex === activeIndex) return;
-      setActiveIndex(targetIndex);
-    },
-    [activeIndex]
-  );
+  const handleSelectSlide = useCallback((targetIndex: number) => {
+    setActiveIndex(targetIndex);
+  }, []);
 
   const handleNext = useCallback(() => {
-    const next = (activeIndex + 1) % HERO_SLIDES.length;
-    handleSelectSlide(next);
-  }, [activeIndex, handleSelectSlide]);
+    setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+  }, []);
 
   const handlePrev = useCallback(() => {
-    const prev = (activeIndex - 1 + HERO_SLIDES.length) % HERO_SLIDES.length;
-    handleSelectSlide(prev);
-  }, [activeIndex, handleSelectSlide]);
+    setActiveIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  }, []);
+
+  const handleToggleLang = useCallback(() => {
+    setLang((prev) => (prev === 'en' ? 'es' : 'en'));
+  }, []);
+
+  const handleOpenBooking = useCallback(() => {
+    setIsBookingOpen(true);
+  }, []);
+
+  const handleCloseBooking = useCallback(() => {
+    setIsBookingOpen(false);
+  }, []);
 
   useEffect(() => {
+    if (isBookingOpen || isAdminRoute) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isBookingOpen) return;
       if (e.key === 'ArrowRight') {
         handleNext();
       } else if (e.key === 'ArrowLeft') {
@@ -102,15 +131,32 @@ export const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNext, handlePrev, isBookingOpen]);
+  }, [handleNext, handlePrev, isBookingOpen, isAdminRoute]);
 
   const currentReview = REVIEW_ITEMS[activeReviewIdx];
 
-  const filteredGallery = GALLERY_ITEMS.filter((item) => {
-    if (activeGalleryFilter === 'ALL') return true;
-    if (activeGalleryFilter === 'ARCH') return item.aspect === 'arch' || item.aspect === 'tall';
-    return item.aspect === 'wide';
-  });
+  const filteredGallery = useMemo(
+    () =>
+      GALLERY_ITEMS.filter((item) => {
+        if (activeGalleryFilter === 'ALL') return true;
+        if (activeGalleryFilter === 'ARCH') return item.aspect === 'arch' || item.aspect === 'tall';
+        return item.aspect === 'wide';
+      }),
+    [activeGalleryFilter]
+  );
+
+  if (isAdminRoute) {
+    return (
+      <Suspense fallback={<div className="admin-loading-fallback">Cargando panel...</div>}>
+        <AdminDashboard
+          onExitAdmin={() => {
+            window.history.pushState({}, '', '/');
+            setIsAdminRoute(false);
+          }}
+        />
+      </Suspense>
+    );
+  }
 
   return (
     <div
@@ -118,17 +164,12 @@ export const App: React.FC = () => {
         isIntroLoading ? 'is-intro-active' : 'is-intro-complete'
       }`}
     >
-      <div
-        className={`lumiere-frame ${
-          !isHome ? 'is-split-frame' : 'is-home-frame'
-        }`}
-      >
-        {/* 4-SECOND LUXURY ARCHITECTURAL INTRO PRELOADER */}
+      <div className={`lumiere-frame ${!isHome ? 'is-split-frame' : 'is-home-frame'}`}>
+        {/* LUXURY ARCHITECTURAL INTRO PRELOADER */}
         <div
-          className={`lumiere-intro-loader ${
-            isIntroLoading ? 'is-visible' : 'is-hidden'
-          }`}
+          className={`lumiere-intro-loader ${isIntroLoading ? 'is-visible' : 'is-hidden'}`}
           aria-hidden={!isIntroLoading}
+          inert={!isIntroLoading}
         >
           <div className="intro-top-bar">
             <span className="intro-meta-label">VIEN VACATION HOME</span>
@@ -146,17 +187,14 @@ export const App: React.FC = () => {
             </div>
 
             <div className="intro-progress-track" aria-hidden="true">
-              <div
-                className="intro-progress-fill"
-                style={{ transform: `scaleX(${introProgress / 100})` }}
-              />
+              <div ref={progressFillRef} className="intro-progress-fill" />
             </div>
           </div>
 
           <div className="intro-bottom-bar">
             <span className="intro-status-text">{t.introStatus}</span>
-            <span className="intro-counter">
-              {String(introProgress).padStart(2, '0')}%
+            <span ref={progressCounterRef} className="intro-counter">
+              00%
             </span>
           </div>
         </div>
@@ -166,14 +204,15 @@ export const App: React.FC = () => {
           lang={lang}
           isSplitLayout={isSplitHeader}
           onSelectNav={handleSelectNav}
-          onToggleLang={() => setLang((prev) => (prev === 'en' ? 'es' : 'en'))}
-          onOpenBooking={() => setIsBookingOpen(true)}
+          onToggleLang={handleToggleLang}
+          onOpenBooking={handleOpenBooking}
         />
 
         {/* UNIFIED SCROLL SHELL INSIDE FIXED ARTIFICIAL WINDOW */}
         <div
+          ref={scrollShellRef}
           className={`unified-scroll-shell ${
-            isHome ? 'scroll-enabled-home' : 'scroll-locked-suites'
+            isHome || isSuites ? 'scroll-enabled-home' : 'scroll-locked-suites'
           }`}
         >
           {/* PERSISTENT CHOREOGRAPHED STAGE */}
@@ -194,7 +233,6 @@ export const App: React.FC = () => {
                       isActive ? 'is-active-slide' : 'is-hidden-slide'
                     }`}
                     fetchPriority={isActive ? 'high' : 'low'}
-                    loading={isActive ? undefined : 'lazy'}
                     decoding={isActive ? 'sync' : 'async'}
                     width="1920"
                     height="1080"
@@ -204,15 +242,15 @@ export const App: React.FC = () => {
               <div className="shared-media-vignette" aria-hidden="true" />
             </div>
 
-            {/* 2. HOME LAYER: Stacked Monumental Typography MA / KA / NA */}
-            <div className="home-monumental-layer" aria-hidden={!isHome}>
-              <h1 className="monumental-title" aria-label="MAKANA">
+            {/* 2. HOME LAYER: Stacked Monumental Typography VI / EN */}
+            <div className="home-monumental-layer" aria-hidden={!isHome} inert={!isHome}>
+              <h1 className="monumental-title" aria-label="VIEN">
                 <span className="monumental-mask">
                   <span
                     className="monumental-line"
                     style={{ '--line-idx': 0 } as React.CSSProperties}
                   >
-                    MA
+                    VI
                   </span>
                 </span>
                 <span className="monumental-mask">
@@ -220,22 +258,14 @@ export const App: React.FC = () => {
                     className="monumental-line"
                     style={{ '--line-idx': 1 } as React.CSSProperties}
                   >
-                    KA
-                  </span>
-                </span>
-                <span className="monumental-mask">
-                  <span
-                    className="monumental-line"
-                    style={{ '--line-idx': 2 } as React.CSSProperties}
-                  >
-                    NA
+                    EN
                   </span>
                 </span>
               </h1>
             </div>
 
             {/* 3. SUITES LAYER */}
-            <div className="suites-editorial-layer" aria-hidden={!isSuites}>
+            <div className="suites-editorial-layer" aria-hidden={!isSuites} inert={!isSuites}>
               <div className="suites-center-content">
                 <div
                   className="suites-triptych"
@@ -248,7 +278,6 @@ export const App: React.FC = () => {
                       <button
                         key={slide.id}
                         type="button"
-                        tabIndex={isSuites ? 0 : -1}
                         style={{ '--stagger-index': idx } as React.CSSProperties}
                         className={`triptych-card suites-choreo-item suites-choreo-thumb ${
                           isSelected ? 'is-selected' : ''
@@ -261,6 +290,7 @@ export const App: React.FC = () => {
                           src={slide.image}
                           alt={slide.thumbnailAlt[lang]}
                           className="triptych-img"
+                          decoding="async"
                           width="140"
                           height="210"
                         />
@@ -271,8 +301,8 @@ export const App: React.FC = () => {
 
                 <div className="suites-heading-block">
                   <h2 className="suites-main-title suites-choreo-item suites-choreo-title">
-                    <span>VIEN VACATION HOME</span>
-                    <span>SUITE {currentSlide.unitNumber}</span>
+                    <span>MAKANA RESORT · TONSUPA</span>
+                    <span>{currentSlide.titleLine1[lang]}</span>
                   </h2>
                   <p className="suites-subtitle suites-choreo-item suites-choreo-subtitle">
                     {currentSlide.capacityLabel[lang]} · {currentSlide.bedsLabel[lang]} ·{' '}
@@ -283,9 +313,8 @@ export const App: React.FC = () => {
                 <div className="suites-choreo-item suites-choreo-cta">
                   <button
                     type="button"
-                    tabIndex={isSuites ? 0 : -1}
                     className="suites-book-btn"
-                    onClick={() => setIsBookingOpen(true)}
+                    onClick={handleOpenBooking}
                   >
                     {t.bookYourStay}
                   </button>
@@ -304,6 +333,7 @@ export const App: React.FC = () => {
             <section
               className="gallery-stage-layer"
               aria-hidden={!isGallery}
+              inert={!isGallery}
               aria-label="Architectural Visual Archive"
             >
               <div
@@ -316,23 +346,24 @@ export const App: React.FC = () => {
                 </div>
 
                 <div className="gallery-filter-pills" role="group" aria-label="Filter Gallery">
-                  {(['ALL', 'ARCH', 'OASIS'] as const).map((filterKey) => (
-                    <button
-                      key={filterKey}
-                      type="button"
-                      tabIndex={isGallery ? 0 : -1}
-                      className={`gallery-filter-btn ${
-                        activeGalleryFilter === filterKey ? 'is-active' : ''
-                      }`}
-                      onClick={() => setActiveGalleryFilter(filterKey)}
-                    >
-                      {filterKey === 'ALL'
-                        ? t.filterAll
-                        : filterKey === 'ARCH'
-                        ? t.filterArch
-                        : t.filterOasis}
-                    </button>
-                  ))}
+                  {(['ALL', 'ARCH', 'OASIS'] as const).map((filterKey) => {
+                    const isSelected = activeGalleryFilter === filterKey;
+                    return (
+                      <button
+                        key={filterKey}
+                        type="button"
+                        aria-pressed={isSelected}
+                        className={`gallery-filter-btn ${isSelected ? 'is-active' : ''}`}
+                        onClick={() => setActiveGalleryFilter(filterKey)}
+                      >
+                        {filterKey === 'ALL'
+                          ? t.filterAll
+                          : filterKey === 'ARCH'
+                          ? t.filterArch
+                          : t.filterOasis}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -342,31 +373,39 @@ export const App: React.FC = () => {
                     key={item.id}
                     style={{ '--gal-idx': idx + 1 } as React.CSSProperties}
                     className={`gallery-mosaic-card aspect-${item.aspect} gallery-choreo-item`}
-                    onClick={() => {
-                      const matchIdx = HERO_SLIDES.findIndex((s) => s.image === item.image);
-                      if (matchIdx !== -1) {
-                        handleSelectSlide(matchIdx);
-                      }
-                      setIsBookingOpen(true);
-                    }}
                   >
-                    <img
-                      src={item.image}
-                      alt={item.title[lang]}
-                      className="gallery-mosaic-img"
-                      style={item.objectPosition ? { objectPosition: item.objectPosition } : undefined}
-                      loading="lazy"
-                      decoding="async"
-                      width="600"
-                      height="420"
-                    />
-                    <div className="gallery-mosaic-overlay">
-                      <span className="gallery-card-code">
-                        {item.code[lang]} · {item.location[lang]}
-                      </span>
-                      <h3 className="gallery-card-title">{item.title[lang]}</h3>
-                      <p className="gallery-card-caption">{item.caption[lang]}</p>
-                    </div>
+                    <button
+                      type="button"
+                      className="gallery-mosaic-trigger"
+                      aria-label={`${item.title[lang]} — ${t.bookYourStay}`}
+                      onClick={() => {
+                        const matchIdx = HERO_SLIDES.findIndex((s) => s.image === item.image);
+                        if (matchIdx !== -1) {
+                          handleSelectSlide(matchIdx);
+                        }
+                        setIsBookingOpen(true);
+                      }}
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.title[lang]}
+                        className="gallery-mosaic-img"
+                        style={
+                          item.objectPosition ? { objectPosition: item.objectPosition } : undefined
+                        }
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="420"
+                      />
+                      <div className="gallery-mosaic-overlay">
+                        <span className="gallery-card-code">
+                          {item.code[lang]} · {item.location[lang]}
+                        </span>
+                        <h3 className="gallery-card-title">{item.title[lang]}</h3>
+                        <p className="gallery-card-caption">{item.caption[lang]}</p>
+                      </div>
+                    </button>
                   </article>
                 ))}
               </div>
@@ -376,6 +415,7 @@ export const App: React.FC = () => {
             <section
               className="reviews-stage-layer"
               aria-hidden={!isReviews}
+              inert={!isReviews}
               aria-label="Guest Reflections and Acclaim"
             >
               <div className="reviews-editorial-pane">
@@ -412,7 +452,7 @@ export const App: React.FC = () => {
                 <div
                   className="reviews-selector-strip reviews-choreo-item"
                   style={{ '--rev-idx': 3 } as React.CSSProperties}
-                  role="tablist"
+                  role="group"
                   aria-label="Select Guest Reflection"
                 >
                   {REVIEW_ITEMS.map((rev, idx) => {
@@ -421,9 +461,7 @@ export const App: React.FC = () => {
                       <button
                         key={rev.id}
                         type="button"
-                        role="tab"
-                        tabIndex={isReviews ? 0 : -1}
-                        aria-selected={isSelected}
+                        aria-pressed={isSelected}
                         className={`review-mini-pill ${isSelected ? 'is-selected' : ''}`}
                         onClick={() => {
                           setActiveReviewIdx(idx);
@@ -444,9 +482,8 @@ export const App: React.FC = () => {
                 >
                   <button
                     type="button"
-                    tabIndex={isReviews ? 0 : -1}
                     className="suites-book-btn"
-                    onClick={() => setIsBookingOpen(true)}
+                    onClick={handleOpenBooking}
                   >
                     {t.reserveExperience}
                   </button>
@@ -458,21 +495,20 @@ export const App: React.FC = () => {
             <aside
               className="shared-bottom-right-dock"
               aria-hidden={isGallery}
+              inert={isGallery}
               aria-label="Scene Preview and Carousel Controls"
             >
-              <div className="preview-thumb-collapsible">
+              <div className="preview-thumb-collapsible" inert={!isHome}>
                 <button
                   type="button"
-                  tabIndex={isHome ? 0 : -1}
                   className="preview-thumb-button"
-                  onClick={handleNext}
+                  onClick={() => handleSelectNav('SUITES')}
                   aria-label={`${previewSlide.titleLine1[lang]} ${previewSlide.titleLine2[lang]}`}
                 >
                   <img
                     src={previewSlide.image}
                     alt={previewSlide.thumbnailAlt[lang]}
                     className="preview-thumb-img"
-                    loading="lazy"
                     decoding="async"
                     width="360"
                     height="200"
@@ -481,7 +517,13 @@ export const App: React.FC = () => {
               </div>
 
               <div className="preview-card-footer">
-                <div className="preview-meta">
+                <div
+                  className="preview-meta"
+                  onClick={() => {
+                    if (isHome) handleSelectNav('SUITES');
+                  }}
+                  style={isHome ? { cursor: 'pointer' } : undefined}
+                >
                   <span className="preview-index">{currentSlide.indexLabel}</span>
                   <h2 className="preview-title" id="active-scene-heading" tabIndex={-1}>
                     <span>{currentSlide.titleLine1[lang]}</span>
@@ -492,7 +534,6 @@ export const App: React.FC = () => {
                 <div className="preview-controls" role="group" aria-label="Slide Navigation">
                   <button
                     type="button"
-                    tabIndex={isGallery ? -1 : 0}
                     className="circle-arrow-btn"
                     onClick={handlePrev}
                     aria-label={t.prevAria}
@@ -515,7 +556,6 @@ export const App: React.FC = () => {
 
                   <button
                     type="button"
-                    tabIndex={isGallery ? -1 : 0}
                     className="circle-arrow-btn"
                     onClick={handleNext}
                     aria-label={t.nextAria}
@@ -540,9 +580,17 @@ export const App: React.FC = () => {
             </aside>
           </main>
 
-          {/* ABOUT US SECTION */}
+          {/* 2ND SECTION OF HOME: Left blank, ready for future VIEN content */}
           {isHome && (
-            <AboutSection lang={lang} onExploreSuites={() => handleSelectNav('SUITES')} />
+            <section
+              className="about-section home-blank-section"
+              aria-label="Vien Vacation Home"
+            />
+          )}
+
+          {/* 2ND SECTION OF SUITES: Makana Suites Editorial Details */}
+          {isSuites && (
+            <AboutSection lang={lang} onExploreSuites={handleOpenBooking} />
           )}
         </div>
       </div>
@@ -551,7 +599,7 @@ export const App: React.FC = () => {
         isOpen={isBookingOpen}
         lang={lang}
         initialSuiteId={currentSlide.id}
-        onClose={() => setIsBookingOpen(false)}
+        onClose={handleCloseBooking}
       />
     </div>
   );

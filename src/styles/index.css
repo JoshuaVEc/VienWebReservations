@@ -1,4 +1,6 @@
 :root {
+  color-scheme: dark;
+  accent-color: #c9a97c;
   --bg-outer: #262320;
   --bg-frame: #131312;
   --text-primary: rgba(242, 239, 233, 0.92);
@@ -18,12 +20,31 @@
   --cinema-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-*,
-*::before,
-*::after {
+:where(*, *::before, *::after) {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+::selection {
+  background-color: rgba(201, 169, 124, 0.32);
+  color: #f2efe9;
+}
+
+:where(a:any-link, button, input, select):focus-visible {
+  outline: 2px solid #c9a97c;
+  outline-offset: 2px;
+}
+
+.admin-loading-fallback {
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  background-color: #11100e;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
 }
 
 html,
@@ -217,6 +238,7 @@ body {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, rgba(135, 114, 93, 0.4), #c9a97c);
+  transform: scaleX(0);
   transform-origin: left center;
   transition: transform 0.12s linear;
 }
@@ -271,14 +293,31 @@ body {
 
 .brand-monogram {
   justify-self: start;
-  color: rgba(235, 232, 226, 0.85);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(235, 232, 226, 0.88);
   text-decoration: none;
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(1.5rem, 2vw, 1.95rem);
-  letter-spacing: 0.04em;
   line-height: 1;
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.brand-monogram-letter {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+  letter-spacing: 0.04em;
+  color: rgba(242, 239, 233, 0.95);
+}
+
+.brand-monogram-sub {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(0.54rem, 0.62vw, 0.64rem);
+  letter-spacing: 0.2em;
+  color: rgba(201, 169, 124, 0.85);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .brand-monogram:hover {
@@ -294,11 +333,11 @@ body {
 }
 
 .lumiere-viewport.mode-suites .lumiere-header .nav-pills {
-  transform: translate3d(-14vw, 0, 0);
+  transform: translate3d(-5vw, 0, 0);
 }
 
 .lumiere-viewport.mode-reviews .lumiere-header .nav-pills {
-  transform: translate3d(12vw, 0, 0);
+  transform: translate3d(6vw, 0, 0);
 }
 
 .nav-pill,
@@ -417,7 +456,6 @@ body {
   overflow: hidden;
   container-type: size;
   container-name: hero-stage;
-  user-select: none;
 }
 
 /* ==========================================================================
@@ -542,15 +580,16 @@ body {
   font-weight: 300;
   color: var(--text-monumental);
   text-transform: uppercase;
-  font-size: clamp(5.5rem, 17.5vw, 16.5rem);
+  font-size: clamp(7rem, 22.5vw, 21.5rem);
   line-height: 0.86;
   letter-spacing: -0.025em;
   text-shadow: 0 8px 36px rgba(0, 0, 0, 0.16);
+  user-select: none;
 }
 
 @supports (font-size: 1cqb) {
   .monumental-title {
-    font-size: clamp(5rem, 32.5cqb, 18rem);
+    font-size: clamp(6.5rem, 45cqb, 23rem);
     line-height: 0.855;
   }
 }
@@ -867,8 +906,22 @@ body {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: #181614;
-  cursor: pointer;
   min-height: 0;
+}
+
+.gallery-mosaic-trigger {
+  appearance: none;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+  cursor: pointer;
 }
 
 .gallery-mosaic-card.aspect-arch {
@@ -1287,8 +1340,6 @@ body {
    HOME VIEW: About Us ("Nosotros") Section
    ========================================================================== */
 .about-section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto none auto 750px;
   padding: clamp(2rem, 4.5vw, 4.5rem) clamp(1rem, 3vw, 3.25rem) clamp(2.5rem, 5vw, 4.5rem);
   border-radius: clamp(1.1rem, 1.9vw, 1.65rem);
   background:
@@ -1296,6 +1347,11 @@ body {
     rgba(22, 21, 19, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
+}
+
+.home-blank-section {
+  min-height: 75vh;
+  scroll-snap-align: start;
 }
 
 .about-grid {
@@ -1363,6 +1419,7 @@ body {
 }
 
 .about-stats {
+  list-style: none;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(1rem, 2vw, 2rem);
@@ -1642,7 +1699,6 @@ dialog::backdrop {
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 0.875rem;
-  outline: none;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
@@ -1655,6 +1711,58 @@ dialog::backdrop {
 .form-field select:focus {
   border-color: #c9a97c;
   background: rgba(255, 255, 255, 0.07);
+}
+
+.form-field input:not([type='range']):user-invalid {
+  border-color: #ef5350;
+  background: rgba(239, 83, 80, 0.08);
+}
+
+.form-field input:not([type='range']):user-valid {
+  border-color: rgba(129, 199, 132, 0.55);
+}
+
+.booking-availability-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(201, 169, 124, 0.3);
+  background: rgba(201, 169, 124, 0.08);
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.booking-error-banner {
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(198, 40, 40, 0.22);
+  border: 1px solid rgba(239, 83, 80, 0.5);
+  color: #ffb4ab;
+  font-size: 0.8rem;
+}
+
+.dialog-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.dialog-whatsapp-btn {
+  text-align: center;
+  text-decoration: none;
+  background: #25d366;
+  border-color: #25d366;
+  color: #0c0b0a;
+  font-weight: 600;
+}
+
+.dialog-whatsapp-btn:hover {
+  background: #2fe070;
+  border-color: #2fe070;
 }
 
 .dialog-actions {
@@ -1672,7 +1780,7 @@ dialog::backdrop {
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
 }
 
 .dialog-secondary-btn {
@@ -1681,7 +1789,7 @@ dialog::backdrop {
   color: var(--text-muted);
 }
 
-.dialog-secondary-btn:hover {
+.dialog-secondary-btn:hover:not(:disabled) {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.06);
 }
@@ -1693,9 +1801,14 @@ dialog::backdrop {
   font-weight: 500;
 }
 
-.dialog-submit-btn:hover {
+.dialog-submit-btn:hover:not(:disabled) {
   background: var(--accent-sand-hover);
   transform: translateY(-1px);
+}
+
+.dialog-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .booking-confirmation {
@@ -1946,16 +2059,16 @@ dialog::backdrop {
   }
 
   .monumental-title {
-    font-size: clamp(4rem, 30vw, 9rem);
+    font-size: clamp(4.5rem, 36vw, 10.5rem);
   }
 
-  /* Height-aware sizing: MAKANA only uses the stage height that remains
+  /* Height-aware sizing: VIEN only uses the stage height that remains
      after reserving ~14rem at the bottom for the compact preview dock.
-     3 lines × 0.855 line-height + top padding ≈ 2.75 × font-size.
-     Also capped by width (36cqi) so the syllables never overflow sideways. */
+     2 lines × 0.855 line-height + top padding ≈ 1.9 × font-size.
+     Also capped by width (44cqi) so the syllables never overflow sideways. */
   @supports (font-size: 1cqi) {
     .monumental-title {
-      font-size: clamp(3rem, min((100cqb - 14rem) / 2.75, 36cqi), 7.5rem);
+      font-size: clamp(3.5rem, min((100cqb - 14rem) / 1.9, 44cqi), 9rem);
     }
   }
 
