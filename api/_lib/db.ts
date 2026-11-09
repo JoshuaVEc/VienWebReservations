@@ -13,10 +13,24 @@ import {
   UnitRecord,
 } from './schema.js';
 
-const DEFAULT_UNITS: UnitRecord[] = [
+export const DEFAULT_UNITS: UnitRecord[] = [
   {
     id: 'depto-612',
     name: 'Departamento 612 — Full Equipado | Vista al Mar',
+    unitNumber: '612',
+    tagline: 'FULL EQUIPADO · VISTA AL MAR',
+    description:
+      'Ubicado en Makana Resort — Tonsupa. Cuenta con 2 camas de 2 plazas, sillón y mesa comedor, cocina equipada, aire acondicionado, Wi-Fi, baño moderno, área de sala-comedor y balcón con vista al mar.',
+    bedsLabel: '2 Camas de 2 Plazas · Sillón y Mesa Comedor',
+    capacityLabel: 'Makana Resort · Tonsupa',
+    maxGuests: 4,
+    coverImage: '/images/apt-612/apt612-4.jpg',
+    galleryImages: [
+      '/images/apt-612/apt612-4.jpg',
+      '/images/apt-612/apt612-2.jpg',
+      '/images/apt-612/apt612-1.jpg',
+      '/images/apt-612/apt612-3.jpg',
+    ],
     weekdayRate: 85,
     weekendRate: 110,
     cleaningFee: 15,
@@ -29,6 +43,20 @@ const DEFAULT_UNITS: UnitRecord[] = [
   {
     id: 'suite-311',
     name: 'Suite 311 — Tercer Piso | 49 m² | Vista al Mar',
+    unitNumber: '311',
+    tagline: 'TERCER PISO · 49 M² · VISTA AL MAR',
+    description:
+      'Ubicada en el tercer piso (49 m²) en Makana Resort — Tonsupa. Full equipada con 2 camas de 2 plazas, sofá cama, cocina equipada, aire acondicionado, Wi-Fi, baño moderno y balcón con vista al mar.',
+    bedsLabel: '2 Camas de 2 Plazas + Sofá Cama',
+    capacityLabel: 'Tercer Piso · 49 m² · Makana Resort',
+    maxGuests: 4,
+    coverImage: '/images/suite-311/img-05.jpg',
+    galleryImages: [
+      '/images/suite-311/img-05.jpg',
+      '/images/suite-311/img-02.jpg',
+      '/images/suite-311/img-01.jpg',
+      '/images/suite-311/img-03.jpg',
+    ],
     weekdayRate: 85,
     weekendRate: 110,
     cleaningFee: 15,
@@ -81,6 +109,30 @@ const LOCAL_DB_PATH = path.resolve(process.cwd(), 'data', 'local-db.json');
 let cachedLocalState: LocalDatabaseState | null = null;
 let cachedLocalMtimeMs = 0;
 
+function enrichUnitRecordWithDefaults(u: UnitRecord): UnitRecord {
+  const def = DEFAULT_UNITS.find((d) => d.id === u.id);
+  const gallery =
+    Array.isArray(u.galleryImages) && u.galleryImages.length > 0
+      ? u.galleryImages
+      : def?.galleryImages ?? (u.coverImage ? [u.coverImage] : ['/images/apt-612/apt612-4.jpg']);
+  const cover = u.coverImage || gallery[0] || def?.coverImage || '/images/apt-612/apt612-4.jpg';
+
+  return {
+    ...u,
+    unitNumber: u.unitNumber || def?.unitNumber || u.id.replace(/[^0-9a-zA-Z]/g, '').slice(0, 6).toUpperCase(),
+    tagline: u.tagline || def?.tagline || 'FULL EQUIPADA · VISTA AL MAR',
+    description:
+      u.description ||
+      def?.description ||
+      'Suite equipada en Makana Resort — Tonsupa con cocina completa, aire acondicionado, Wi-Fi y acceso a piscinas, jacuzzi y playa.',
+    bedsLabel: u.bedsLabel || def?.bedsLabel || '2 Camas de 2 Plazas',
+    capacityLabel: u.capacityLabel || def?.capacityLabel || 'Makana Resort · Tonsupa',
+    maxGuests: typeof u.maxGuests === 'number' && u.maxGuests > 0 ? u.maxGuests : def?.maxGuests ?? 4,
+    coverImage: cover,
+    galleryImages: gallery,
+  };
+}
+
 function readLocalDb(): LocalDatabaseState {
   try {
     if (fs.existsSync(LOCAL_DB_PATH)) {
@@ -89,7 +141,9 @@ function readLocalDb(): LocalDatabaseState {
         return cachedLocalState;
       }
       const raw = fs.readFileSync(LOCAL_DB_PATH, 'utf8');
-      cachedLocalState = JSON.parse(raw) as LocalDatabaseState;
+      const parsed = JSON.parse(raw) as LocalDatabaseState;
+      parsed.units = (parsed.units || []).map(enrichUnitRecordWithDefaults);
+      cachedLocalState = parsed;
       cachedLocalMtimeMs = stat.mtimeMs;
       return cachedLocalState;
     }
@@ -139,6 +193,14 @@ async function getNeonClient() {
       CREATE TABLE IF NOT EXISTS units (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
+        unit_number TEXT NOT NULL DEFAULT '',
+        tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR',
+        description TEXT NOT NULL DEFAULT '',
+        beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas',
+        capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa',
+        max_guests INTEGER NOT NULL DEFAULT 4,
+        cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg',
+        gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb,
         weekday_rate INTEGER NOT NULL DEFAULT 85,
         weekend_rate INTEGER NOT NULL DEFAULT 110,
         cleaning_fee INTEGER NOT NULL DEFAULT 15,
@@ -149,6 +211,17 @@ async function getNeonClient() {
         last_ical_sync_at TIMESTAMPTZ
       );
     `;
+
+    // Safe migrations for existing Neon tables
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS unit_number TEXT NOT NULL DEFAULT '';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS max_guests INTEGER NOT NULL DEFAULT 4;`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg';`;
+    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb;`;
+
     await sql`
       CREATE TABLE IF NOT EXISTS seasonal_rates (
         id SERIAL PRIMARY KEY,
@@ -196,12 +269,36 @@ async function getNeonClient() {
       );
     `;
 
-    for (const u of DEFAULT_UNITS) {
-      await sql`
-        INSERT INTO units (id, name, weekday_rate, weekend_rate, cleaning_fee, min_nights, dual_discount_percent)
-        VALUES (${u.id}, ${u.name}, ${u.weekdayRate}, ${u.weekendRate}, ${u.cleaningFee}, ${u.minNights}, ${u.dualDiscountPercent})
-        ON CONFLICT (id) DO NOTHING;
-      `;
+    const existingUnits = await sql`SELECT COUNT(*)::int AS cnt FROM units`;
+    if ((existingUnits[0]?.cnt ?? 0) === 0) {
+      for (const u of DEFAULT_UNITS) {
+        await sql`
+          INSERT INTO units (
+            id, name, unit_number, tagline, description, beds_label, capacity_label,
+            max_guests, cover_image, gallery_images_json,
+            weekday_rate, weekend_rate, cleaning_fee, min_nights, dual_discount_percent
+          )
+          VALUES (
+            ${u.id}, ${u.name}, ${u.unitNumber || ''}, ${u.tagline || ''}, ${u.description || ''},
+            ${u.bedsLabel || ''}, ${u.capacityLabel || ''}, ${u.maxGuests || 4},
+            ${u.coverImage || ''}, ${JSON.stringify(u.galleryImages || [])}::jsonb,
+            ${u.weekdayRate}, ${u.weekendRate}, ${u.cleaningFee}, ${u.minNights}, ${u.dualDiscountPercent}
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `;
+      }
+    } else {
+      // Backfill metadata on default units if they were created prior to metadata columns
+      for (const u of DEFAULT_UNITS) {
+        await sql`
+          UPDATE units
+          SET unit_number = CASE WHEN unit_number = '' THEN ${u.unitNumber || ''} ELSE unit_number END,
+              description = CASE WHEN description = '' THEN ${u.description || ''} ELSE description END,
+              cover_image = CASE WHEN cover_image = '' OR (id = 'suite-311' AND cover_image = '/images/apt-612/apt612-4.jpg') THEN ${u.coverImage || ''} ELSE cover_image END,
+              gallery_images_json = CASE WHEN gallery_images_json = '[]'::jsonb THEN ${JSON.stringify(u.galleryImages || [])}::jsonb ELSE gallery_images_json END
+          WHERE id = ${u.id};
+        `;
+      }
     }
 
     const existingSeasons = await sql`SELECT COUNT(*)::int AS cnt FROM seasonal_rates`;
@@ -220,6 +317,52 @@ async function getNeonClient() {
   return sql;
 }
 
+function mapRowToUnit(r: Record<string, unknown>): UnitRecord {
+  const rawGallery = r.gallery_images_json;
+  let galleryImages: string[] = [];
+  if (Array.isArray(rawGallery)) {
+    galleryImages = rawGallery.map(String);
+  } else if (typeof rawGallery === 'string') {
+    try {
+      const parsed = JSON.parse(rawGallery);
+      if (Array.isArray(parsed)) galleryImages = parsed.map(String);
+    } catch {
+      galleryImages = [];
+    }
+  }
+
+  return enrichUnitRecordWithDefaults({
+    id: String(r.id),
+    name: String(r.name),
+    unitNumber: r.unit_number ? String(r.unit_number) : undefined,
+    tagline: r.tagline ? String(r.tagline) : undefined,
+    description: r.description ? String(r.description) : undefined,
+    bedsLabel: r.beds_label ? String(r.beds_label) : undefined,
+    capacityLabel: r.capacity_label ? String(r.capacity_label) : undefined,
+    maxGuests: r.max_guests !== undefined ? Number(r.max_guests) : 4,
+    coverImage: r.cover_image ? String(r.cover_image) : undefined,
+    galleryImages,
+    weekdayRate: Number(r.weekday_rate),
+    weekendRate: Number(r.weekend_rate),
+    cleaningFee: Number(r.cleaning_fee),
+    minNights: Number(r.min_nights),
+    dualDiscountPercent: Number(r.dual_discount_percent),
+    airbnbIcalUrl: r.airbnb_ical_url ? String(r.airbnb_ical_url) : null,
+    bookingIcalUrl: r.booking_ical_url ? String(r.booking_ical_url) : null,
+    lastIcalSyncAt: r.last_ical_sync_at ? new Date(String(r.last_ical_sync_at)).toISOString() : null,
+  });
+}
+
+export function slugifyUnitId(rawNameOrSlug: string): string {
+  return rawNameOrSlug
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+}
+
 export const dbRepository = {
   isUsingNeon(): boolean {
     return Boolean(process.env.DATABASE_URL?.trim());
@@ -229,46 +372,113 @@ export const dbRepository = {
     const sql = await getNeonClient();
     if (sql) {
       const rows = await sql`SELECT * FROM units ORDER BY id ASC`;
-      return rows.map((r) => ({
-        id: r.id as UnitId,
-        name: String(r.name),
-        weekdayRate: Number(r.weekday_rate),
-        weekendRate: Number(r.weekend_rate),
-        cleaningFee: Number(r.cleaning_fee),
-        minNights: Number(r.min_nights),
-        dualDiscountPercent: Number(r.dual_discount_percent),
-        airbnbIcalUrl: r.airbnb_ical_url ? String(r.airbnb_ical_url) : null,
-        bookingIcalUrl: r.booking_ical_url ? String(r.booking_ical_url) : null,
-        lastIcalSyncAt: r.last_ical_sync_at ? new Date(r.last_ical_sync_at).toISOString() : null,
-      }));
+      return rows.map((r) => mapRowToUnit(r as Record<string, unknown>));
     }
     return readLocalDb().units;
   },
 
+  async createUnit(
+    input: Omit<UnitRecord, 'id' | 'lastIcalSyncAt'> & { id?: string }
+  ): Promise<UnitRecord> {
+    const cleanId = slugifyUnitId(input.id || input.name) || `suite-${Date.now()}`;
+    const gallery =
+      Array.isArray(input.galleryImages) && input.galleryImages.length > 0
+        ? input.galleryImages
+        : input.coverImage
+        ? [input.coverImage]
+        : ['/images/apt-612/apt612-4.jpg'];
+    const cover = input.coverImage || gallery[0] || '/images/apt-612/apt612-4.jpg';
+
+    const record: UnitRecord = enrichUnitRecordWithDefaults({
+      id: cleanId,
+      name: input.name.trim(),
+      unitNumber: input.unitNumber?.trim() || cleanId.toUpperCase(),
+      tagline: input.tagline?.trim() || 'FULL EQUIPADA · VISTA AL MAR',
+      description:
+        input.description?.trim() ||
+        'Suite equipada en Makana Resort — Tonsupa con vista al mar, cocina equipada, A/C y Wi-Fi.',
+      bedsLabel: input.bedsLabel?.trim() || '2 Camas de 2 Plazas',
+      capacityLabel: input.capacityLabel?.trim() || 'Makana Resort · Tonsupa',
+      maxGuests: Number(input.maxGuests) || 4,
+      coverImage: cover,
+      galleryImages: gallery,
+      weekdayRate: Number(input.weekdayRate) || 85,
+      weekendRate: Number(input.weekendRate) || 110,
+      cleaningFee: Number(input.cleaningFee) || 15,
+      minNights: Number(input.minNights) || 1,
+      dualDiscountPercent: Number(input.dualDiscountPercent ?? 10),
+      airbnbIcalUrl: input.airbnbIcalUrl?.trim() || null,
+      bookingIcalUrl: input.bookingIcalUrl?.trim() || null,
+      lastIcalSyncAt: null,
+    });
+
+    const sql = await getNeonClient();
+    if (sql) {
+      await sql`
+        INSERT INTO units (
+          id, name, unit_number, tagline, description, beds_label, capacity_label,
+          max_guests, cover_image, gallery_images_json,
+          weekday_rate, weekend_rate, cleaning_fee, min_nights, dual_discount_percent,
+          airbnb_ical_url, booking_ical_url
+        )
+        VALUES (
+          ${record.id}, ${record.name}, ${record.unitNumber || ''}, ${record.tagline || ''},
+          ${record.description || ''}, ${record.bedsLabel || ''}, ${record.capacityLabel || ''},
+          ${record.maxGuests || 4}, ${record.coverImage || ''},
+          ${JSON.stringify(record.galleryImages || [])}::jsonb,
+          ${record.weekdayRate}, ${record.weekendRate}, ${record.cleaningFee},
+          ${record.minNights}, ${record.dualDiscountPercent},
+          ${record.airbnbIcalUrl}, ${record.bookingIcalUrl}
+        );
+      `;
+      return record;
+    }
+
+    const state = readLocalDb();
+    if (state.units.some((u) => u.id === record.id)) {
+      throw new Error(`Ya existe una unidad con el ID "${record.id}".`);
+    }
+    state.units.push(record);
+    writeLocalDb(state);
+    return record;
+  },
+
   async updateUnit(
     unitId: UnitId,
-    patch: Partial<
-      Pick<
-        UnitRecord,
-        | 'weekdayRate'
-        | 'weekendRate'
-        | 'cleaningFee'
-        | 'minNights'
-        | 'dualDiscountPercent'
-        | 'airbnbIcalUrl'
-        | 'bookingIcalUrl'
-        | 'lastIcalSyncAt'
-      >
-    >
+    patch: Partial<Omit<UnitRecord, 'id'>>
   ): Promise<UnitRecord | null> {
+    const cleanPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, v]) => v !== undefined)
+    ) as Partial<Omit<UnitRecord, 'id'>>;
+
     const sql = await getNeonClient();
     if (sql) {
       const current = (await this.getUnits()).find((u) => u.id === unitId);
       if (!current) return null;
-      const updated: UnitRecord = { ...current, ...patch };
+      const updated: UnitRecord = enrichUnitRecordWithDefaults({
+        ...current,
+        ...cleanPatch,
+      });
+      if (
+        Array.isArray(cleanPatch.galleryImages) &&
+        cleanPatch.galleryImages.length > 0 &&
+        !cleanPatch.coverImage
+      ) {
+        updated.coverImage = cleanPatch.galleryImages[0];
+      }
+
       await sql`
         UPDATE units
-        SET weekday_rate = ${updated.weekdayRate},
+        SET name = ${updated.name},
+            unit_number = ${updated.unitNumber || ''},
+            tagline = ${updated.tagline || ''},
+            description = ${updated.description || ''},
+            beds_label = ${updated.bedsLabel || ''},
+            capacity_label = ${updated.capacityLabel || ''},
+            max_guests = ${updated.maxGuests || 4},
+            cover_image = ${updated.coverImage || ''},
+            gallery_images_json = ${JSON.stringify(updated.galleryImages || [])}::jsonb,
+            weekday_rate = ${updated.weekdayRate},
             weekend_rate = ${updated.weekendRate},
             cleaning_fee = ${updated.cleaningFee},
             min_nights = ${updated.minNights},
@@ -284,9 +494,38 @@ export const dbRepository = {
     const state = readLocalDb();
     const idx = state.units.findIndex((u) => u.id === unitId);
     if (idx === -1) return null;
-    state.units[idx] = { ...state.units[idx], ...patch };
+    const merged: UnitRecord = enrichUnitRecordWithDefaults({
+      ...state.units[idx],
+      ...cleanPatch,
+    });
+    if (
+      Array.isArray(cleanPatch.galleryImages) &&
+      cleanPatch.galleryImages.length > 0 &&
+      !cleanPatch.coverImage
+    ) {
+      merged.coverImage = cleanPatch.galleryImages[0];
+    }
+    state.units[idx] = merged;
     writeLocalDb(state);
     return state.units[idx];
+  },
+
+  async deleteUnit(unitId: UnitId): Promise<boolean> {
+    const sql = await getNeonClient();
+    if (sql) {
+      await sql`DELETE FROM calendar_blocks WHERE unit_id = ${unitId}`;
+      await sql`DELETE FROM seasonal_rates WHERE unit_id = ${unitId}`;
+      const rows = await sql`DELETE FROM units WHERE id = ${unitId} RETURNING id`;
+      return rows.length > 0;
+    }
+
+    const state = readLocalDb();
+    const before = state.units.length;
+    state.units = state.units.filter((u) => u.id !== unitId);
+    state.calendarBlocks = state.calendarBlocks.filter((b) => b.unitId !== unitId);
+    state.seasonalRates = state.seasonalRates.filter((s) => s.unitId !== unitId);
+    writeLocalDb(state);
+    return state.units.length < before;
   },
 
   async getSeasonalRates(): Promise<SeasonalRateRecord[]> {
@@ -301,7 +540,7 @@ export const dbRepository = {
         endDate: String(r.end_date),
         nightlyRate: Number(r.nightly_rate),
         minNights: Number(r.min_nights),
-        createdAt: new Date(r.created_at).toISOString(),
+        createdAt: new Date(String(r.created_at)).toISOString(),
       }));
     }
     return readLocalDb().seasonalRates.sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -326,7 +565,7 @@ export const dbRepository = {
         endDate: String(r.end_date),
         nightlyRate: Number(r.nightly_rate),
         minNights: Number(r.min_nights),
-        createdAt: new Date(r.created_at).toISOString(),
+        createdAt: new Date(String(r.created_at)).toISOString(),
       };
     }
 
@@ -376,8 +615,8 @@ export const dbRepository = {
           ? JSON.parse(r.price_breakdown_json)
           : r.price_breakdown_json) as PriceBreakdown,
         status: r.status as BookingStatus,
-        expiresAt: new Date(r.expires_at).toISOString(),
-        createdAt: new Date(r.created_at).toISOString(),
+        expiresAt: new Date(String(r.expires_at)).toISOString(),
+        createdAt: new Date(String(r.created_at)).toISOString(),
       }));
     }
     return readLocalDb().bookings.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -446,7 +685,7 @@ export const dbRepository = {
         startDate: String(r.start_date),
         endDate: String(r.end_date),
         summary: String(r.summary),
-        updatedAt: new Date(r.updated_at).toISOString(),
+        updatedAt: new Date(String(r.updated_at)).toISOString(),
       }));
     }
     const blocks = readLocalDb().calendarBlocks;
@@ -521,7 +760,7 @@ export const dbRepository = {
         startDate: String(r.start_date),
         endDate: String(r.end_date),
         summary: String(r.summary),
-        updatedAt: new Date(r.updated_at).toISOString(),
+        updatedAt: new Date(String(r.updated_at)).toISOString(),
       };
     }
 

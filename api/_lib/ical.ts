@@ -82,12 +82,15 @@ export function generateUnitICalFeed(
   unitId: UnitId,
   bookings: BookingRecord[],
   blocks: CalendarBlockRecord[],
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  availableUnitIds?: UnitId[]
 ): string {
   const unitLabel =
     unitId === 'depto-612'
       ? 'Makana Resort Tonsupa - Departamento 612'
-      : 'Makana Resort Tonsupa - Suite 311';
+      : unitId === 'suite-311'
+      ? 'Makana Resort Tonsupa - Suite 311'
+      : `Makana Resort Tonsupa - ${unitId}`;
 
   const dtStamp = formatUtcTimestampCompact(new Date(nowMs));
   const vevents: string[] = [];
@@ -95,7 +98,7 @@ export function generateUnitICalFeed(
   // 1. Direct website bookings (CONFIRMED + active 2-hour PENDING holds)
   for (const b of bookings) {
     if (!isBookingHoldActive(b, nowMs)) continue;
-    const targetUnits = expandUnitsForSelection(b.unitSelection);
+    const targetUnits = expandUnitsForSelection(b.unitSelection, availableUnitIds);
     if (!targetUnits.includes(unitId)) continue;
 
     const statusTag = b.status === 'CONFIRMED' ? 'CONFIRMED' : 'HOLD 2H';

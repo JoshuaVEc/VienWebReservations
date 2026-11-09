@@ -9,8 +9,14 @@ import {
   UnitRecord,
 } from './schema.js';
 
-export function expandUnitsForSelection(selection: BookingUnitSelection): UnitId[] {
+export function expandUnitsForSelection(
+  selection: BookingUnitSelection,
+  availableUnitIds?: UnitId[]
+): UnitId[] {
   if (selection === 'vien-residence-experience') {
+    if (availableUnitIds && availableUnitIds.length > 0) {
+      return availableUnitIds;
+    }
     return ['depto-612', 'suite-311'];
   }
   return [selection];
@@ -69,14 +75,15 @@ export function computeOccupiedRanges(
   unitSelection: BookingUnitSelection,
   bookings: BookingRecord[],
   blocks: CalendarBlockRecord[],
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  availableUnitIds?: UnitId[]
 ): OccupiedRange[] {
-  const targetUnits = expandUnitsForSelection(unitSelection);
+  const targetUnits = expandUnitsForSelection(unitSelection, availableUnitIds);
   const occupied: OccupiedRange[] = [];
 
   for (const b of bookings) {
     if (!isBookingHoldActive(b, nowMs)) continue;
-    const bookedUnits = expandUnitsForSelection(b.unitSelection);
+    const bookedUnits = expandUnitsForSelection(b.unitSelection, availableUnitIds);
     for (const u of targetUnits) {
       if (bookedUnits.includes(u)) {
         occupied.push({
@@ -115,12 +122,19 @@ export function checkDateRangeAvailability(
   checkOut: string,
   bookings: BookingRecord[],
   blocks: CalendarBlockRecord[],
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  availableUnitIds?: UnitId[]
 ): { available: boolean; conflicts: OccupiedRange[] } {
   if (!checkIn || !checkOut || checkIn >= checkOut) {
     return { available: false, conflicts: [] };
   }
-  const occupied = computeOccupiedRanges(unitSelection, bookings, blocks, nowMs);
+  const occupied = computeOccupiedRanges(
+    unitSelection,
+    bookings,
+    blocks,
+    nowMs,
+    availableUnitIds
+  );
   const conflicts = occupied.filter((occ) =>
     rangesOverlap(checkIn, checkOut, occ.startDate, occ.endDate)
   );
@@ -138,7 +152,8 @@ export function calculateStayPricing(
   seasonalRates: SeasonalRateRecord[]
 ): PriceBreakdown {
   const nightsList = getNightsList(checkIn, checkOut);
-  const targetUnits = expandUnitsForSelection(unitSelection);
+  const allIds = units.map((u) => u.id);
+  const targetUnits = expandUnitsForSelection(unitSelection, allIds);
   const nightlyItems: NightlyRateBreakdownItem[] = [];
 
   let minNightsRequired = 1;
@@ -205,7 +220,7 @@ export function calculateStayPricing(
   }, 0);
 
   let dualDiscountUsd = 0;
-  if (unitSelection === 'vien-residence-experience') {
+  if (unitSelection === 'vien-residence-experience' && targetUnits.length > 1) {
     const discountPct = units[0]?.dualDiscountPercent ?? 10;
     dualDiscountUsd = Math.round((subtotalUsd * discountPct) / 100);
   }

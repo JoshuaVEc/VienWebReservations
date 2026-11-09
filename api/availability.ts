@@ -8,12 +8,6 @@ import {
 } from './_lib/pricing.js';
 import { BookingUnitSelection } from './_lib/schema.js';
 
-const VALID_SELECTIONS: BookingUnitSelection[] = [
-  'depto-612',
-  'suite-311',
-  'vien-residence-experience',
-];
-
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   if (req.method !== 'GET') {
     sendJson(res, 405, { error: 'Method Not Allowed' });
@@ -23,15 +17,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   try {
     await syncExternalCalendarsIfNeeded(false);
 
-    const params = getQueryParams(req);
-    const rawUnit = (params.get('unit') || 'depto-612') as BookingUnitSelection;
-    const unitSelection: BookingUnitSelection = VALID_SELECTIONS.includes(rawUnit)
-      ? rawUnit
-      : 'depto-612';
-
-    const checkIn = params.get('checkIn')?.trim() || '';
-    const checkOut = params.get('checkOut')?.trim() || '';
-
     const [units, seasonalRates, bookings, blocks] = await Promise.all([
       dbRepository.getUnits(),
       dbRepository.getSeasonalRates(),
@@ -39,7 +24,25 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       dbRepository.getCalendarBlocks(),
     ]);
 
-    const occupiedRanges = computeOccupiedRanges(unitSelection, bookings, blocks);
+    const allUnitIds = units.map((u) => u.id);
+    const defaultUnitId = allUnitIds[0] || 'depto-612';
+
+    const params = getQueryParams(req);
+    const rawUnit = (params.get('unit') || defaultUnitId).trim();
+    const isValidSelection =
+      rawUnit === 'vien-residence-experience' || allUnitIds.includes(rawUnit);
+    const unitSelection: BookingUnitSelection = isValidSelection ? rawUnit : defaultUnitId;
+
+    const checkIn = params.get('checkIn')?.trim() || '';
+    const checkOut = params.get('checkOut')?.trim() || '';
+
+    const occupiedRanges = computeOccupiedRanges(
+      unitSelection,
+      bookings,
+      blocks,
+      Date.now(),
+      allUnitIds
+    );
 
     let available: boolean | null = null;
     let conflicts: typeof occupiedRanges = [];
@@ -51,7 +54,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         checkIn,
         checkOut,
         bookings,
-        blocks
+        blocks,
+        Date.now(),
+        allUnitIds
       );
       available = checkResult.available;
       conflicts = checkResult.conflicts;

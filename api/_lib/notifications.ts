@@ -30,14 +30,21 @@ export function verifyAdminPassword(inputPassword: string | null | undefined): b
   return crypto.timingSafeEqual(inputHash, secretHash);
 }
 
-export function getUnitDisplayName(unitSelection: BookingRecord['unitSelection']): string {
+export function getUnitDisplayName(
+  unitSelection: BookingRecord['unitSelection'],
+  unitNameOverride?: string
+): string {
+  if (unitNameOverride) return unitNameOverride;
   if (unitSelection === 'depto-612') {
     return 'Departamento 612 (Full Equipado · Vista al Mar)';
   }
   if (unitSelection === 'suite-311') {
     return 'Suite 311 (Tercer Piso · 49 m² · Vista al Mar)';
   }
-  return 'Reserva Doble: Departamento 612 + Suite 311 (Makana Resort)';
+  if (unitSelection === 'vien-residence-experience') {
+    return 'Reserva Combinada — Todas las Suites (Makana Resort)';
+  }
+  return `${unitSelection.toUpperCase()} (Makana Resort · Tonsupa)`;
 }
 
 export function buildWhatsAppBookingUrl(booking: BookingRecord): string {

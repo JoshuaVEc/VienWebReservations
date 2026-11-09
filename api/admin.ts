@@ -95,6 +95,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         dbRepository.getCalendarBlocks(),
       ]);
 
+      const icalExportUrls: Record<string, string> = {};
+      for (const u of units) {
+        icalExportUrls[u.id] = `${origin}/api/ical/${encodeURIComponent(u.id)}.ics`;
+      }
+
       sendJson(res, 200, {
         storageEngine: dbRepository.isUsingNeon()
           ? 'Neon PostgreSQL (Serverless)'
@@ -106,10 +111,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
           whatsappUrl: buildWhatsAppBookingUrl(b),
         })),
         calendarBlocks,
-        icalExportUrls: {
-          'depto-612': `${origin}/api/ical/depto-612.ics`,
-          'suite-311': `${origin}/api/ical/suite-311.ics`,
-        },
+        icalExportUrls,
       });
       return;
     }
@@ -130,13 +132,61 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         return;
       }
 
-      if (op === 'updateUnit') {
-        const unitId = body.unitId as UnitId;
-        if (unitId !== 'depto-612' && unitId !== 'suite-311') {
-          sendJson(res, 400, { error: 'Unidad inválida' });
+      if (op === 'createUnit') {
+        const name = String(body.name || '').trim();
+        if (!name) {
+          sendJson(res, 400, { error: 'El nombre de la suite es obligatorio.' });
           return;
         }
+        const galleryImages = Array.isArray(body.galleryImages)
+          ? body.galleryImages.map(String).filter(Boolean)
+          : [];
+        const coverImage = String(body.coverImage || galleryImages[0] || '/images/apt-612/apt612-4.jpg').trim();
+
+        const created = await dbRepository.createUnit({
+          id: body.id ? String(body.id).trim() : undefined,
+          name,
+          unitNumber: body.unitNumber ? String(body.unitNumber).trim() : undefined,
+          tagline: body.tagline ? String(body.tagline).trim() : undefined,
+          description: body.description ? String(body.description).trim() : undefined,
+          bedsLabel: body.bedsLabel ? String(body.bedsLabel).trim() : undefined,
+          capacityLabel: body.capacityLabel ? String(body.capacityLabel).trim() : undefined,
+          maxGuests: body.maxGuests !== undefined ? Number(body.maxGuests) : 4,
+          coverImage,
+          galleryImages: galleryImages.length > 0 ? galleryImages : [coverImage],
+          weekdayRate: Number(body.weekdayRate) || 85,
+          weekendRate: Number(body.weekendRate) || 110,
+          cleaningFee: Number(body.cleaningFee ?? 15),
+          minNights: Number(body.minNights) || 1,
+          dualDiscountPercent: Number(body.dualDiscountPercent ?? 10),
+          airbnbIcalUrl: body.airbnbIcalUrl ? String(body.airbnbIcalUrl).trim() || null : null,
+          bookingIcalUrl: body.bookingIcalUrl ? String(body.bookingIcalUrl).trim() || null : null,
+        });
+        sendJson(res, 201, { unit: created });
+        return;
+      }
+
+      if (op === 'updateUnit') {
+        const unitId = String(body.unitId || '').trim();
+        if (!unitId) {
+          sendJson(res, 400, { error: 'ID de unidad requerido' });
+          return;
+        }
+        const galleryImages = Array.isArray(body.galleryImages)
+          ? body.galleryImages.map(String).filter(Boolean)
+          : undefined;
+
         const updated = await dbRepository.updateUnit(unitId, {
+          name: body.name !== undefined ? String(body.name).trim() : undefined,
+          unitNumber: body.unitNumber !== undefined ? String(body.unitNumber).trim() : undefined,
+          tagline: body.tagline !== undefined ? String(body.tagline).trim() : undefined,
+          description: body.description !== undefined ? String(body.description).trim() : undefined,
+          bedsLabel: body.bedsLabel !== undefined ? String(body.bedsLabel).trim() : undefined,
+          capacityLabel:
+            body.capacityLabel !== undefined ? String(body.capacityLabel).trim() : undefined,
+          maxGuests: body.maxGuests !== undefined ? Number(body.maxGuests) : undefined,
+          coverImage: body.coverImage !== undefined ? String(body.coverImage).trim() : undefined,
+          galleryImages,
           weekdayRate:
             body.weekdayRate !== undefined ? Number(body.weekdayRate) : undefined,
           weekendRate:
@@ -157,7 +207,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
               ? String(body.bookingIcalUrl).trim() || null
               : undefined,
         });
+        if (!updated) {
+          sendJson(res, 404, { error: 'Suite no encontrada' });
+          return;
+        }
         sendJson(res, 200, { unit: updated });
+        return;
+      }
+
+      if (op === 'deleteUnit') {
+        const unitId = String(body.unitId || '').trim();
+        if (!unitId) {
+          sendJson(res, 400, { error: 'ID de suite requerido' });
+          return;
+        }
+        const deleted = await dbRepository.deleteUnit(unitId);
+        sendJson(res, 200, { deleted });
         return;
       }
 
@@ -193,17 +258,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       }
 
       if (op === 'addManualBlock') {
-        const unitId = body.unitId as UnitId;
+        const unitId = String(body.unitId || '').trim();
         const startDate = String(body.startDate || '').trim();
         const endDate = String(body.endDate || '').trim();
         const summary = String(body.summary || 'Bloqueo Manual Admin').trim();
 
-        if (
-          (unitId !== 'depto-612' && unitId !== 'suite-311') ||
-          !startDate ||
-          !endDate ||
-          startDate >= endDate
-        ) {
+        if (!unitId || !startDate || !endDate || startDate >= endDate) {
           sendJson(res, 400, { error: 'Rango de fechas de bloqueo inválido' });
           return;
         }

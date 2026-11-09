@@ -1,12 +1,13 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  GALLERY_ITEMS,
-  HERO_SLIDES,
+  DynamicUnitMetadata,
   Language,
   NavSection,
   PAGE_TITLES,
   REVIEW_ITEMS,
   UI_TEXT,
+  buildDynamicGalleryItems,
+  buildDynamicHeroSlides,
 } from './data/heroSlides';
 import { Navbar } from './components/Navbar';
 import { BookingDialog } from './components/BookingDialog';
@@ -31,15 +32,37 @@ export const App: React.FC = () => {
   const [activeGalleryFilter, setActiveGalleryFilter] = useState<'ALL' | 'ARCH' | 'OASIS'>('ALL');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isIntroLoading, setIsIntroLoading] = useState(true);
+  const [liveUnits, setLiveUnits] = useState<DynamicUnitMetadata[] | null>(null);
+
+  const refreshLiveUnits = useCallback(() => {
+    fetch('/api/availability')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.units) && data.units.length > 0) {
+          setLiveUnits(data.units as DynamicUnitMetadata[]);
+        }
+      })
+      .catch(() => {
+        // Fallback to default static slides if offline
+      });
+  }, []);
+
+  useEffect(() => {
+    refreshLiveUnits();
+  }, [refreshLiveUnits]);
+
+  const heroSlides = useMemo(() => buildDynamicHeroSlides(liveUnits), [liveUnits]);
+  const galleryItems = useMemo(() => buildDynamicGalleryItems(liveUnits), [liveUnits]);
 
   const scrollShellRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const progressCounterRef = useRef<HTMLSpanElement>(null);
 
   const t = UI_TEXT[lang];
-  const currentSlide = HERO_SLIDES[activeIndex];
-  const nextSlideIndex = (activeIndex + 1) % HERO_SLIDES.length;
-  const previewSlide = HERO_SLIDES[nextSlideIndex];
+  const safeActiveIndex = activeIndex < heroSlides.length ? activeIndex : 0;
+  const currentSlide = heroSlides[safeActiveIndex];
+  const nextSlideIndex = (safeActiveIndex + 1) % heroSlides.length;
+  const previewSlide = heroSlides[nextSlideIndex];
 
   const isHome = activeNav === 'HOME';
   const isSuites = activeNav === 'SUITES';
@@ -100,12 +123,12 @@ export const App: React.FC = () => {
   }, []);
 
   const handleNext = useCallback(() => {
-    setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length);
-  }, []);
+    setActiveIndex((prev) => (prev + 1) % heroSlides.length);
+  }, [heroSlides.length]);
 
   const handlePrev = useCallback(() => {
-    setActiveIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  }, []);
+    setActiveIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  }, [heroSlides.length]);
 
   const handleToggleLang = useCallback(() => {
     setLang((prev) => (prev === 'en' ? 'es' : 'en'));
@@ -137,19 +160,21 @@ export const App: React.FC = () => {
 
   const filteredGallery = useMemo(
     () =>
-      GALLERY_ITEMS.filter((item) => {
+      galleryItems.filter((item) => {
         if (activeGalleryFilter === 'ALL') return true;
         if (activeGalleryFilter === 'ARCH') return item.aspect === 'arch' || item.aspect === 'tall';
         return item.aspect === 'wide';
       }),
-    [activeGalleryFilter]
+    [activeGalleryFilter, galleryItems]
   );
 
   if (isAdminRoute) {
     return (
       <Suspense fallback={<div className="admin-loading-fallback">Cargando panel...</div>}>
         <AdminDashboard
+          onUnitsUpdated={refreshLiveUnits}
           onExitAdmin={() => {
+            refreshLiveUnits();
             window.history.pushState({}, '', '/');
             setIsAdminRoute(false);
           }}
@@ -222,8 +247,8 @@ export const App: React.FC = () => {
           >
             {/* 1. SHARED MEDIA CANVAS */}
             <div className="shared-media-card">
-              {HERO_SLIDES.map((slide, idx) => {
-                const isActive = idx === activeIndex;
+              {heroSlides.map((slide, idx) => {
+                const isActive = idx === safeActiveIndex;
                 return (
                   <img
                     key={slide.id}
@@ -272,8 +297,8 @@ export const App: React.FC = () => {
                   role="group"
                   aria-label="Sanctuary Gallery Thumbnails"
                 >
-                  {HERO_SLIDES.map((slide, idx) => {
-                    const isSelected = idx === activeIndex;
+                  {heroSlides.map((slide, idx) => {
+                    const isSelected = idx === safeActiveIndex;
                     return (
                       <button
                         key={slide.id}
@@ -379,7 +404,7 @@ export const App: React.FC = () => {
                       className="gallery-mosaic-trigger"
                       aria-label={`${item.title[lang]} — ${t.bookYourStay}`}
                       onClick={() => {
-                        const matchIdx = HERO_SLIDES.findIndex((s) => s.image === item.image);
+                        const matchIdx = heroSlides.findIndex((s) => s.image === item.image);
                         if (matchIdx !== -1) {
                           handleSelectSlide(matchIdx);
                         }
@@ -599,6 +624,7 @@ export const App: React.FC = () => {
         isOpen={isBookingOpen}
         lang={lang}
         initialSuiteId={currentSlide.id}
+        slides={heroSlides}
         onClose={handleCloseBooking}
       />
     </div>

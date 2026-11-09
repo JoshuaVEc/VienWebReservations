@@ -1,12 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/ical/depto-612.ics",
-      "destination": "/api/ical?unit=depto-612"
-    },
-    {
-      "source": "/api/ical/suite-311.ics",
-      "destination": "/api/ical?unit=suite-311"
+      "source": "/api/ical/:unit.ics",
+      "destination": "/api/ical?unit=:unit"
     },
     {
       "source": "/admin",

@@ -1,10 +1,11 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { HERO_SLIDES, Language } from '../data/heroSlides';
+import { HERO_SLIDES, HeroSlide, Language } from '../data/heroSlides';
 
 interface BookingDialogProps {
   isOpen: boolean;
   lang: Language;
   initialSuiteId: string;
+  slides?: HeroSlide[];
   onClose: () => void;
 }
 
@@ -153,7 +154,7 @@ function syncUserInvalidAria(target: EventTarget | null): void {
 }
 
 export const BookingDialog: React.FC<BookingDialogProps> = memo(
-  ({ isOpen, lang, initialSuiteId, onClose }) => {
+  ({ isOpen, lang, initialSuiteId, slides = HERO_SLIDES, onClose }) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const copy = DIALOG_COPY[lang];
     const [selectedSuite, setSelectedSuite] = useState(initialSuiteId);
@@ -344,7 +345,7 @@ export const BookingDialog: React.FC<BookingDialogProps> = memo(
     };
 
     const selectedSuiteName =
-      HERO_SLIDES.find((s) => s.id === selectedSuite)?.suiteName[lang] ?? '';
+      slides.find((s) => s.id === selectedSuite)?.suiteName[lang] ?? '';
 
     return (
       <dialog
@@ -451,7 +452,7 @@ export const BookingDialog: React.FC<BookingDialogProps> = memo(
                   onChange={(e) => setSelectedSuite(e.target.value)}
                   autoFocus
                 >
-                  {HERO_SLIDES.map((slide) => (
+                  {slides.map((slide) => (
                     <option key={slide.id} value={slide.id}>
                       {slide.suiteName[lang]}
                     </option>

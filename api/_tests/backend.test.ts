@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
+import { slugifyUnitId } from '../_lib/db.js';
 import {
   calculateStayPricing,
   checkDateRangeAvailability,
-} from '../_lib/pricing';
-import { generateUnitICalFeed, parseICalText } from '../_lib/ical';
+} from '../_lib/pricing.js';
+import { generateUnitICalFeed, parseICalText } from '../_lib/ical.js';
 import {
   buildWhatsAppBookingUrl,
   signQuickActionToken,
   verifyQuickActionToken,
-} from '../_lib/notifications';
+} from '../_lib/notifications.js';
 import {
   BookingRecord,
   CalendarBlockRecord,
   SeasonalRateRecord,
   UnitRecord,
-} from '../_lib/schema';
+} from '../_lib/schema.js';
 
 const mockUnits: UnitRecord[] = [
   {
@@ -199,5 +200,65 @@ const waUrl = buildWhatsAppBookingUrl(activeHoldBooking);
 assert.ok(waUrl.startsWith('https://wa.me/593999002427?text='));
 assert.ok(decodeURIComponent(waUrl).includes('VIEN-612-AA11'));
 console.log('   ✓ Enlaces de 1 clic y WhatsApp verificados.');
+
+console.log('5. Probando creación dinámica de nuevas suites (ej. Suite 504), tarifas e iCal...');
+const slug = slugifyUnitId('Suite 504 — Piso 5 | Vista al Mar');
+assert.equal(slug, 'suite-504-piso-5-vista-al-mar');
+
+const customSuite: UnitRecord = {
+  id: 'suite-504',
+  name: 'Suite 504 — Piso 5 | Vista al Mar',
+  unitNumber: '504',
+  tagline: 'QUINTO PISO · 55 M² · VISTA AL MAR',
+  description: 'Suite con terraza panorámica.',
+  bedsLabel: '2 Camas King + Sofá Cama',
+  capacityLabel: 'Quinto Piso · Makana Resort',
+  maxGuests: 5,
+  coverImage: 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=',
+  galleryImages: ['data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA='],
+  weekdayRate: 95,
+  weekendRate: 125,
+  cleaningFee: 20,
+  minNights: 1,
+  dualDiscountPercent: 10,
+  airbnbIcalUrl: null,
+  bookingIcalUrl: null,
+  lastIcalSyncAt: null,
+};
+
+const dynamicUnits = [...mockUnits, customSuite];
+const quote504 = calculateStayPricing(
+  'suite-504',
+  '2026-11-12',
+  '2026-11-15',
+  dynamicUnits,
+  mockSeasons
+);
+assert.equal(quote504.nights, 3);
+assert.equal(quote504.subtotalUsd, 95 + 125 + 125); // 345
+assert.equal(quote504.cleaningFeeUsd, 20);
+assert.equal(quote504.totalUsd, 365);
+
+const ics504 = generateUnitICalFeed(
+  'suite-504',
+  [],
+  [
+    {
+      id: 99,
+      unitId: 'suite-504',
+      source: 'MANUAL',
+      externalUid: 'manual-504',
+      startDate: '2026-12-10',
+      endDate: '2026-12-12',
+      summary: 'Bloqueo Suite 504',
+      updatedAt: new Date(nowMs).toISOString(),
+    },
+  ],
+  nowMs,
+  dynamicUnits.map((u) => u.id)
+);
+assert.ok(ics504.includes('X-WR-CALNAME:Makana Resort Tonsupa - suite-504'));
+assert.ok(ics504.includes('SUMMARY:BLOCKED - Bloqueo Suite 504'));
+console.log('   ✓ Gestión dinámica de suites verificada correctamente.');
 
 console.log('\n✅ TODAS LAS PRUEBAS DEL BACKEND PASARON EXITOSAMENTE.');

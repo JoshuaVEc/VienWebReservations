@@ -8,11 +8,11 @@ import { calculateStayPricing, checkDateRangeAvailability } from './_lib/pricing
 import { BookingRecord } from './_lib/schema.js';
 
 const CreateBookingSchema = z.object({
-  unitSelection: z.enum(['depto-612', 'suite-311', 'vien-residence-experience']),
+  unitSelection: z.string().trim().min(1, 'Selecciona una suite'),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
-  adults: z.number().int().min(1).max(8),
-  children: z.number().int().min(0).max(6).default(0),
+  adults: z.number().int().min(1).max(16),
+  children: z.number().int().min(0).max(10).default(0),
   guestName: z.string().trim().min(2, 'Ingresa tu nombre completo').max(120),
   guestPhone: z.string().trim().min(6, 'Ingresa tu número de WhatsApp / Teléfono').max(40),
   guestEmail: z.string().trim().email('Ingresa un correo electrónico válido').max(120),
@@ -23,7 +23,13 @@ const HOLD_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 function generateBookingCode(unitSelection: BookingRecord['unitSelection']): string {
   const unitTag =
-    unitSelection === 'depto-612' ? '612' : unitSelection === 'suite-311' ? '311' : 'DUAL';
+    unitSelection === 'depto-612'
+      ? '612'
+      : unitSelection === 'suite-311'
+      ? '311'
+      : unitSelection === 'vien-residence-experience'
+      ? 'DUAL'
+      : unitSelection.replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase() || 'UNIT';
   const rand = crypto.randomBytes(2).toString('hex').toUpperCase();
   return `VIEN-${unitTag}-${rand}`;
 }
@@ -62,12 +68,23 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       dbRepository.getCalendarBlocks(),
     ]);
 
+    const allUnitIds = units.map((u) => u.id);
+    if (
+      data.unitSelection !== 'vien-residence-experience' &&
+      !allUnitIds.includes(data.unitSelection)
+    ) {
+      sendJson(res, 400, { error: 'La suite seleccionada no existe.' });
+      return;
+    }
+
     const availability = checkDateRangeAvailability(
       data.unitSelection,
       data.checkIn,
       data.checkOut,
       bookings,
-      blocks
+      blocks,
+      Date.now(),
+      allUnitIds
     );
 
     if (!availability.available) {

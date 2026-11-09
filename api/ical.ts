@@ -12,22 +12,28 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   try {
     const params = getQueryParams(req);
     const urlPath = (req.url || '').split('?')[0];
-
-    let unitId: UnitId = 'depto-612';
-    const paramUnit = params.get('unit')?.replace(/\.ics$/i, '');
-
-    if (paramUnit === 'suite-311' || urlPath.includes('suite-311')) {
-      unitId = 'suite-311';
-    } else if (paramUnit === 'depto-612' || urlPath.includes('depto-612')) {
-      unitId = 'depto-612';
-    }
-
-    const [bookings, blocks] = await Promise.all([
+    const [units, bookings, blocks] = await Promise.all([
+      dbRepository.getUnits(),
       dbRepository.getBookings(),
-      dbRepository.getCalendarBlocks(unitId),
+      dbRepository.getCalendarBlocks(),
     ]);
 
-    const icsContent = generateUnitICalFeed(unitId, bookings, blocks);
+    const allUnitIds = units.map((u) => u.id);
+    let unitId: UnitId = allUnitIds[0] || 'depto-612';
+    const paramUnit = params.get('unit')?.replace(/\.ics$/i, '')?.trim();
+
+    if (paramUnit && allUnitIds.includes(paramUnit)) {
+      unitId = paramUnit;
+    } else {
+      const matchedFromPath = allUnitIds.find((id) => urlPath.includes(id));
+      if (matchedFromPath) {
+        unitId = matchedFromPath;
+      } else if (paramUnit) {
+        unitId = paramUnit;
+      }
+    }
+
+    const icsContent = generateUnitICalFeed(unitId, bookings, blocks, Date.now(), allUnitIds);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

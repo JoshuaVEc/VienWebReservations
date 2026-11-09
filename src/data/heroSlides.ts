@@ -421,3 +421,142 @@ export const REVIEW_ITEMS: ReviewItem[] = [
     slideIndex: 0,
   },
 ];
+
+export interface DynamicUnitMetadata {
+  id: string;
+  name: string;
+  unitNumber?: string;
+  tagline?: string;
+  description?: string;
+  bedsLabel?: string;
+  capacityLabel?: string;
+  maxGuests?: number;
+  coverImage?: string;
+  galleryImages?: string[];
+  weekdayRate: number;
+  weekendRate: number;
+}
+
+export function buildDynamicHeroSlides(units?: DynamicUnitMetadata[] | null): HeroSlide[] {
+  if (!units || units.length === 0) {
+    return HERO_SLIDES;
+  }
+
+  const totalGuests = units.reduce((sum, u) => sum + (u.maxGuests || 4), 0);
+  const unitNums = units
+    .map((u) => u.unitNumber || u.id.replace(/[^0-9a-zA-Z]/g, '').toUpperCase())
+    .join(' & ');
+
+  const overviewSlide: HeroSlide = {
+    ...HERO_SLIDES[0],
+    unitNumber: unitNums || 'MAKANA',
+    indexLabel: '01/',
+    suiteName: {
+      en: `Combined Booking — All Suites (${unitNums}) · Makana Resort`,
+      es: `Reserva Combinada — Todas las Suites (${unitNums}) · Makana Resort`,
+    },
+    capacityLabel: {
+      en: `Up to ${totalGuests} Guests · Makana Resort`,
+      es: `Hasta ${totalGuests} Huéspedes · Makana Resort`,
+    },
+    bedsLabel: {
+      en: `${units.length} Exclusive Suites`,
+      es: `${units.length} Suites Exclusivas`,
+    },
+    maxGuests: totalGuests,
+  };
+
+  const unitSlides: HeroSlide[] = units.map((u, idx) => {
+    const existingDefault = HERO_SLIDES.find((s) => s.id === u.id);
+    const shortTitle = u.name.split('—')[0].trim().toUpperCase();
+    const indexStr = `${String(idx + 2).padStart(2, '0')}/`;
+    const coverImg =
+      u.coverImage ||
+      (u.galleryImages && u.galleryImages[0]) ||
+      existingDefault?.image ||
+      '/images/apt-612/apt612-4.jpg';
+
+    return {
+      id: u.id,
+      unitNumber: u.unitNumber || existingDefault?.unitNumber || shortTitle,
+      indexLabel: indexStr,
+      titleLine1: {
+        en: shortTitle,
+        es: shortTitle,
+      },
+      titleLine2: {
+        en: (u.tagline || existingDefault?.titleLine2.en || 'FULL EQUIPPED · OCEAN VIEW').toUpperCase(),
+        es: (u.tagline || existingDefault?.titleLine2.es || 'FULL EQUIPADA · VISTA AL MAR').toUpperCase(),
+      },
+      subtitle: {
+        en: u.description || existingDefault?.subtitle.en || u.name,
+        es: u.description || existingDefault?.subtitle.es || u.name,
+      },
+      image: coverImg,
+      thumbnailAlt: {
+        en: `${u.name} — Makana Resort Tonsupa`,
+        es: `${u.name} — Makana Resort Tonsupa`,
+      },
+      suiteName: {
+        en: u.name,
+        es: u.name,
+      },
+      capacityLabel: {
+        en: u.capacityLabel || existingDefault?.capacityLabel.en || 'Makana Resort · Tonsupa',
+        es: u.capacityLabel || existingDefault?.capacityLabel.es || 'Makana Resort · Tonsupa',
+      },
+      bedsLabel: {
+        en: u.bedsLabel || existingDefault?.bedsLabel.en || '2 Beds (2 Plazas)',
+        es: u.bedsLabel || existingDefault?.bedsLabel.es || '2 Camas de 2 Plazas',
+      },
+      maxGuests: u.maxGuests || existingDefault?.maxGuests || 4,
+      nightlyRate: {
+        en: `From $${u.weekdayRate} USD/night · Direct Rate`,
+        es: `Desde $${u.weekdayRate} USD/noche · Tarifa Directa`,
+      },
+      icalSyncReady: true,
+    };
+  });
+
+  return [overviewSlide, ...unitSlides];
+}
+
+export function buildDynamicGalleryItems(units?: DynamicUnitMetadata[] | null): GalleryItem[] {
+  if (!units || units.length === 0) {
+    return GALLERY_ITEMS;
+  }
+
+  const facilityItems = GALLERY_ITEMS.filter((item) => item.aspect === 'wide' || item.id === 'gal-5' || item.id === 'gal-6');
+  const dynamicSuiteCards: GalleryItem[] = units.map((u, idx) => {
+    const img =
+      u.coverImage ||
+      (u.galleryImages && u.galleryImages[0]) ||
+      '/images/apt-612/apt612-2.jpg';
+    const numStr = String(idx + 1).padStart(2, '0');
+    const shortTitle = u.name.split('—')[0].trim().toUpperCase();
+
+    return {
+      id: `gal-unit-${u.id}`,
+      code: {
+        en: `${numStr} / ${shortTitle}`,
+        es: `${numStr} / ${shortTitle}`,
+      },
+      title: {
+        en: u.name.toUpperCase(),
+        es: u.name.toUpperCase(),
+      },
+      location: {
+        en: (u.bedsLabel || 'FULL EQUIPPED · OCEAN VIEW').toUpperCase(),
+        es: (u.bedsLabel || 'FULL EQUIPADA · VISTA AL MAR').toUpperCase(),
+      },
+      aspect: idx % 2 === 0 ? 'arch' : 'tall',
+      image: img,
+      caption: {
+        en: u.description || u.name,
+        es: u.description || u.name,
+      },
+    };
+  });
+
+  return [...dynamicSuiteCards, ...facilityItems];
+}

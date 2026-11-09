@@ -8,7 +8,7 @@ on:
 
 jobs:
   quality-and-build:
-    name: Typecheck & Build
+    name: Typecheck, Tests & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,9 @@ jobs:
 
       - name: Typecheck (TypeScript)
         run: npx tsc -b
+
+      - name: Run Automated Backend & Suite Tests
+        run: npx tsx api/_tests/backend.test.ts
 
       - name: Build project
         run: npm run build
