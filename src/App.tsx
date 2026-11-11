@@ -78,7 +78,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const startTime = performance.now();
-    const totalDuration = 3400;
+    const totalDuration = 2400;
     let rafId = 0;
 
     const tick = (now: number) => {
@@ -102,7 +102,7 @@ export const App: React.FC = () => {
     rafId = requestAnimationFrame(tick);
     const doneTimer = window.setTimeout(() => {
       setIsIntroLoading(false);
-    }, 3450);
+    }, 2400);
 
     return () => {
       cancelAnimationFrame(rafId);
