@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 export interface AdminUnit {
   id: string;
@@ -1006,6 +1006,47 @@ export const AdminDashboard: React.FC<{
         </section>
       )}
 
+      {/* CALENDARIO VISUAL INTERACTIVO Y DINÁMICO DE TODAS LAS SUITES */}
+      <AdminAvailabilityCalendar
+        units={data.units}
+        seasonalRates={data.seasonalRates}
+        bookings={data.bookings}
+        calendarBlocks={data.calendarBlocks}
+        onQuickBlockNight={(unitId, startDate, endDate) => {
+          void runMutation(
+            {
+              op: 'addManualBlock',
+              unitId,
+              startDate,
+              endDate,
+              summary: 'Bloqueo Rápido desde Calendario Admin',
+            },
+            `Noche ${startDate} → ${endDate} bloqueada manualmente y publicada en iCal`
+          );
+        }}
+        onPrefillManualBlock={(unitId, startDate, endDate) => {
+          setBlockUnit(unitId);
+          setBlockStart(startDate);
+          setBlockEnd(endDate);
+          const el = document.getElementById('admin-manual-blocks-section');
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+        onDeleteBlock={(blockId) => {
+          void runMutation(
+            { op: 'deleteCalendarBlock', id: blockId },
+            'Bloqueo eliminado y fechas liberadas'
+          );
+        }}
+        onUpdateBookingStatus={(bookingId, status, bookingCode) => {
+          void runMutation(
+            { op: 'updateBookingStatus', id: bookingId, status },
+            status === 'CONFIRMED'
+              ? `Reserva ${bookingCode} CONFIRMADA y bloqueada en iCal`
+              : `Reserva ${bookingCode} CANCELADA y fechas liberadas`
+          );
+        }}
+      />
+
       {/* 1. RESERVAS & PRE-RESERVAS DE 2 HORAS */}
       <section style={{ marginBottom: '2.5rem' }}>
         <h2 style={{ fontSize: '1.15rem', color: '#c9a97c', fontWeight: 400, marginBottom: '0.75rem' }}>
@@ -1389,7 +1430,7 @@ export const AdminDashboard: React.FC<{
       </section>
 
       {/* 4. BLOQUEOS MANUALES Y EVENTOS IMPORTADOS DE AIRBNB / BOOKING */}
-      <section>
+      <section id="admin-manual-blocks-section">
         <h2 style={{ fontSize: '1.15rem', color: '#c9a97c', fontWeight: 400, marginBottom: '0.75rem' }}>
           4. Bloqueos de Calendario Manuales e Importados de Airbnb / Booking ({data.calendarBlocks.length})
         </h2>
@@ -2151,5 +2192,1166 @@ const UnitConfigCard: React.FC<{
         Guardar Cambios de Suite
       </button>
     </div>
+  );
+};
+
+/* ==========================================================================
+   CALENDARIO VISUAL DINÁMICO DE DISPONIBILIDAD Y OCUPACIÓN POR SUITE
+   ========================================================================== */
+
+interface UnitDayOccupation {
+  kind: 'CONFIRMED' | 'PENDING_HOLD' | 'AIRBNB' | 'BOOKING' | 'MANUAL';
+  label: string;
+  subLabel: string;
+  startDate: string;
+  endDate: string;
+  bookingId?: string;
+  bookingCode?: string;
+  blockId?: number;
+}
+
+interface UnitDaySnapshot {
+  unit: AdminUnit;
+  shortCode: string;
+  rateUsd: number;
+  rateType: 'WEEKDAY' | 'WEEKEND' | 'SEASONAL';
+  seasonLabel?: string;
+  occupations: UnitDayOccupation[];
+  isAvailable: boolean;
+}
+
+const MONTH_NAMES_ES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
+
+const WEEKDAYS_ES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+function formatYmd(year: number, monthZeroBased: number, day: number): string {
+  const m = String(monthZeroBased + 1).padStart(2, '0');
+  const d = String(day).padStart(2, '0');
+  return `${year}-${m}-${d}`;
+}
+
+function getNextDateYmd(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, (m || 1) - 1, (d || 1) + 1));
+  return dt.toISOString().slice(0, 10);
+}
+
+function getShortUnitCode(unit: AdminUnit): string {
+  if (unit.unitNumber && unit.unitNumber.trim()) {
+    return unit.unitNumber.trim();
+  }
+  const numMatch = unit.name.match(/\b(\d{2,4})\b/);
+  if (numMatch) return numMatch[1];
+  return unit.id.slice(0, 8).toUpperCase();
+}
+
+function getOccupationVisualStyle(kind: UnitDayOccupation['kind']): {
+  bg: string;
+  border: string;
+  color: string;
+  tag: string;
+} {
+  switch (kind) {
+    case 'CONFIRMED':
+      return {
+        bg: 'rgba(46, 125, 50, 0.32)',
+        border: 'rgba(102, 187, 106, 0.65)',
+        color: '#b9f6ca',
+        tag: 'Web Confirmada',
+      };
+    case 'PENDING_HOLD':
+      return {
+        bg: 'rgba(245, 124, 0, 0.28)',
+        border: 'rgba(255, 183, 77, 0.65)',
+        color: '#ffe0b2',
+        tag: 'Hold 2h',
+      };
+    case 'AIRBNB':
+      return {
+        bg: 'rgba(255, 90, 95, 0.22)',
+        border: 'rgba(255, 120, 124, 0.55)',
+        color: '#ffcdd2',
+        tag: 'Airbnb',
+      };
+    case 'BOOKING':
+      return {
+        bg: 'rgba(30, 136, 229, 0.26)',
+        border: 'rgba(100, 181, 246, 0.6)',
+        color: '#bbdefb',
+        tag: 'Booking.com',
+      };
+    case 'MANUAL':
+      return {
+        bg: 'rgba(142, 36, 170, 0.28)',
+        border: 'rgba(206, 147, 216, 0.6)',
+        color: '#f3e5f5',
+        tag: 'Manual',
+      };
+  }
+}
+
+const AdminAvailabilityCalendar: React.FC<{
+  units: AdminUnit[];
+  seasonalRates: AdminSeasonalRate[];
+  bookings: AdminBooking[];
+  calendarBlocks: AdminBlock[];
+  onQuickBlockNight: (unitId: string, startDate: string, endDate: string) => void;
+  onPrefillManualBlock: (unitId: string, startDate: string, endDate: string) => void;
+  onDeleteBlock: (blockId: number) => void;
+  onUpdateBookingStatus: (
+    bookingId: string,
+    status: 'CONFIRMED' | 'CANCELLED',
+    bookingCode: string
+  ) => void;
+}> = ({
+  units,
+  seasonalRates,
+  bookings,
+  calendarBlocks,
+  onQuickBlockNight,
+  onPrefillManualBlock,
+  onDeleteBlock,
+  onUpdateBookingStatus,
+}) => {
+  const todayYmd = useMemo(() => {
+    const now = new Date();
+    return formatYmd(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
+
+  const [viewYear, setViewYear] = useState<number>(() => new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState<number>(() => new Date().getMonth());
+  const [selectedSuiteFilter, setSelectedSuiteFilter] = useState<string>('ALL');
+  const [selectedDateYmd, setSelectedDateYmd] = useState<string>(todayYmd);
+
+  // If a filtered suite was deleted dynamically, fallback to 'ALL'
+  const effectiveSuiteFilter = useMemo(() => {
+    if (selectedSuiteFilter === 'ALL') return 'ALL';
+    return units.some((u) => u.id === selectedSuiteFilter) ? selectedSuiteFilter : 'ALL';
+  }, [selectedSuiteFilter, units]);
+
+  const visibleUnits = useMemo(() => {
+    if (effectiveSuiteFilter === 'ALL') return units;
+    return units.filter((u) => u.id === effectiveSuiteFilter);
+  }, [effectiveSuiteFilter, units]);
+
+  const quickMonthShortcuts = useMemo(() => {
+    const base = new Date();
+    const list: Array<{ year: number; month: number; label: string }> = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+      list.push({
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: `${MONTH_NAMES_ES[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`,
+      });
+    }
+    return list;
+  }, []);
+
+  const handlePrevMonth = () => {
+    setViewMonth((prev) => {
+      if (prev === 0) {
+        setViewYear((y) => y - 1);
+        return 11;
+      }
+      return prev - 1;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setViewMonth((prev) => {
+      if (prev === 11) {
+        setViewYear((y) => y + 1);
+        return 0;
+      }
+      return prev + 1;
+    });
+  };
+
+  const buildDaySnapshotsForDate = useCallback(
+    (dateYmd: string, targetUnits: AdminUnit[]): UnitDaySnapshot[] => {
+      const nowMs = Date.now();
+      const [y, m, d] = dateYmd.split('-').map(Number);
+      const dayOfWeekUtc = new Date(Date.UTC(y, (m || 1) - 1, d || 1)).getUTCDay();
+      const isWeekend = dayOfWeekUtc === 5 || dayOfWeekUtc === 6;
+
+      return targetUnits.map((unit) => {
+        const matchingSeason = seasonalRates.find(
+          (s) =>
+            (s.unitId === unit.id || s.unitId === 'ALL') &&
+            dateYmd >= s.startDate &&
+            dateYmd <= s.endDate
+        );
+
+        const rateUsd = matchingSeason
+          ? matchingSeason.nightlyRate
+          : isWeekend
+          ? unit.weekendRate
+          : unit.weekdayRate;
+
+        const rateType: UnitDaySnapshot['rateType'] = matchingSeason
+          ? 'SEASONAL'
+          : isWeekend
+          ? 'WEEKEND'
+          : 'WEEKDAY';
+
+        const occupations: UnitDayOccupation[] = [];
+
+        // 1. Direct website bookings (CONFIRMED or active 2h PENDING)
+        for (const b of bookings) {
+          if (b.status === 'CANCELLED') continue;
+          const isExpiredPending =
+            b.status === 'PENDING' && new Date(b.expiresAt).getTime() <= nowMs;
+          if (isExpiredPending) continue;
+
+          const appliesToUnit =
+            b.unitSelection === 'vien-residence-experience' || b.unitSelection === unit.id;
+          if (!appliesToUnit) continue;
+
+          if (dateYmd >= b.checkIn && dateYmd < b.checkOut) {
+            occupations.push({
+              kind: b.status === 'CONFIRMED' ? 'CONFIRMED' : 'PENDING_HOLD',
+              label:
+                b.status === 'CONFIRMED'
+                  ? `Reserva ${b.bookingCode} (${b.guestName})`
+                  : `Hold 2h ${b.bookingCode} (${b.guestName})`,
+              subLabel: `${b.checkIn} → ${b.checkOut}`,
+              startDate: b.checkIn,
+              endDate: b.checkOut,
+              bookingId: b.id,
+              bookingCode: b.bookingCode,
+            });
+          }
+        }
+
+        // 2. External iCal (Airbnb / Booking.com) & Manual blocks
+        for (const blk of calendarBlocks) {
+          if (blk.unitId !== unit.id) continue;
+          if (dateYmd >= blk.startDate && dateYmd < blk.endDate) {
+            occupations.push({
+              kind: blk.source,
+              label: blk.summary || blk.source,
+              subLabel: `${blk.startDate} → ${blk.endDate}`,
+              startDate: blk.startDate,
+              endDate: blk.endDate,
+              blockId: blk.id,
+            });
+          }
+        }
+
+        return {
+          unit,
+          shortCode: getShortUnitCode(unit),
+          rateUsd,
+          rateType,
+          seasonLabel: matchingSeason?.label,
+          occupations,
+          isAvailable: occupations.length === 0,
+        };
+      });
+    },
+    [bookings, calendarBlocks, seasonalRates]
+  );
+
+  // Build calendar cells for viewYear & viewMonth
+  const calendarDays = useMemo(() => {
+    const firstDayUtc = new Date(Date.UTC(viewYear, viewMonth, 1));
+    // Convert Sunday=0..Saturday=6 into Monday=0..Sunday=6
+    const startOffset = (firstDayUtc.getUTCDay() + 6) % 7;
+    const daysInMonth = new Date(Date.UTC(viewYear, viewMonth + 1, 0)).getUTCDate();
+
+    const cells: Array<{
+      dateYmd: string | null;
+      dayNumber: number | null;
+      snapshots: UnitDaySnapshot[];
+      seasonLabel?: string;
+    }> = [];
+
+    for (let i = 0; i < startOffset; i++) {
+      cells.push({ dateYmd: null, dayNumber: null, snapshots: [] });
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateYmd = formatYmd(viewYear, viewMonth, day);
+      const snapshots = buildDaySnapshotsForDate(dateYmd, visibleUnits);
+      const seasonLabel = snapshots.find((s) => s.seasonLabel)?.seasonLabel;
+      cells.push({
+        dateYmd,
+        dayNumber: day,
+        snapshots,
+        seasonLabel,
+      });
+    }
+
+    return cells;
+  }, [viewYear, viewMonth, visibleUnits, buildDaySnapshotsForDate]);
+
+  // Month summary counters
+  const monthStats = useMemo(() => {
+    let fullyFreeDays = 0;
+    let occupiedUnitNights = 0;
+    for (const cell of calendarDays) {
+      if (!cell.dateYmd) continue;
+      const allFree = cell.snapshots.every((s) => s.isAvailable);
+      if (allFree) fullyFreeDays++;
+      for (const s of cell.snapshots) {
+        if (!s.isAvailable) occupiedUnitNights++;
+      }
+    }
+    return { fullyFreeDays, occupiedUnitNights };
+  }, [calendarDays]);
+
+  // Snapshots for the currently clicked date across ALL dynamic suites
+  const selectedDayAllUnitsSnapshots = useMemo(
+    () => buildDaySnapshotsForDate(selectedDateYmd, units),
+    [selectedDateYmd, units, buildDaySnapshotsForDate]
+  );
+
+  const selectedSingleUnit = useMemo(
+    () => (effectiveSuiteFilter === 'ALL' ? null : units.find((u) => u.id === effectiveSuiteFilter)),
+    [effectiveSuiteFilter, units]
+  );
+
+  return (
+    <section
+      style={{
+        background: '#1a1815',
+        border: '1px solid rgba(201,169,124,0.38)',
+        borderRadius: '0.95rem',
+        padding: '1.35rem',
+        marginBottom: '2.5rem',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+      }}
+    >
+      {/* CABECERA DEL CALENDARIO Y SELECTOR DINÁMICO DE SUITES */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '1.1rem',
+        }}
+      >
+        <div>
+          <span
+            style={{
+              color: '#c9a97c',
+              fontSize: '0.7rem',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+            }}
+          >
+            SINCRONIZACIÓN EN VIVO · AIRBNB · BOOKING.COM · RESERVAS WEB
+          </span>
+          <h2 style={{ margin: '0.2rem 0 0.35rem', fontSize: '1.25rem', fontWeight: 400 }}>
+            📅 Calendario Visual de Disponibilidad y Ocupación ({units.length} Suites)
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#9e988e' }}>
+            Cualquier suite nueva que agregues o vincules con iCal aparecerá aquí automáticamente
+            con su foto, tarifas y disponibilidad por día.
+          </p>
+        </div>
+
+        {/* Estadísticas rápidas del mes en vista */}
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              background: '#11100e',
+              border: '1px solid rgba(102,187,106,0.35)',
+              borderRadius: '0.5rem',
+              padding: '0.45rem 0.75rem',
+              fontSize: '0.76rem',
+            }}
+          >
+            <span style={{ color: '#81c784', fontWeight: 700 }}>{monthStats.fullyFreeDays}</span>{' '}
+            días con disponibilidad total
+          </div>
+          <div
+            style={{
+              background: '#11100e',
+              border: '1px solid rgba(255,120,124,0.35)',
+              borderRadius: '0.5rem',
+              padding: '0.45rem 0.75rem',
+              fontSize: '0.76rem',
+            }}
+          >
+            <span style={{ color: '#ff8a80', fontWeight: 700 }}>
+              {monthStats.occupiedUnitNights}
+            </span>{' '}
+            noches ocupadas / bloqueadas en el mes
+          </div>
+        </div>
+      </div>
+
+      {/* PESTAÑAS DINÁMICAS DE SUITES (SE ACTUALIZAN SOLAS AL CREAR/EDITAR SUITES) */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.55rem',
+          flexWrap: 'wrap',
+          paddingBottom: '1rem',
+          marginBottom: '1rem',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setSelectedSuiteFilter('ALL')}
+          style={{
+            padding: '0.5rem 0.95rem',
+            borderRadius: '0.5rem',
+            border:
+              effectiveSuiteFilter === 'ALL'
+                ? '1px solid #c9a97c'
+                : '1px solid rgba(255,255,255,0.15)',
+            background:
+              effectiveSuiteFilter === 'ALL' ? 'rgba(201,169,124,0.22)' : '#11100e',
+            color: effectiveSuiteFilter === 'ALL' ? '#f5f2eb' : '#9e988e',
+            fontWeight: effectiveSuiteFilter === 'ALL' ? 700 : 400,
+            fontSize: '0.8rem',
+            cursor: 'pointer',
+          }}
+        >
+          🏢 Todas las Suites ({units.length})
+        </button>
+
+        {units.map((u) => {
+          const isSelected = effectiveSuiteFilter === u.id;
+          const thumb = u.galleryImages?.[0] || u.coverImage || '/images/apt-612/apt612-4.jpg';
+          const shortCode = getShortUnitCode(u);
+          return (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => setSelectedSuiteFilter(u.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                padding: '0.35rem 0.85rem 0.35rem 0.45rem',
+                borderRadius: '0.5rem',
+                border: isSelected ? '1px solid #c9a97c' : '1px solid rgba(255,255,255,0.15)',
+                background: isSelected ? 'rgba(201,169,124,0.22)' : '#11100e',
+                color: isSelected ? '#f5f2eb' : '#d5d0c5',
+                fontWeight: isSelected ? 700 : 400,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+              }}
+            >
+              <img
+                src={thumb}
+                alt={u.name}
+                style={{
+                  width: '28px',
+                  height: '24px',
+                  objectFit: 'cover',
+                  borderRadius: '0.25rem',
+                  border: '1px solid rgba(201,169,124,0.4)',
+                }}
+              />
+              <span>
+                <strong>[{shortCode}]</strong> {u.name.split('—')[0].trim()}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* RESUMEN DE SUITE INDIVIDUAL SI ESTÁ FILTRADA */}
+      {selectedSingleUnit && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.85rem',
+            background: '#11100e',
+            border: '1px solid rgba(201,169,124,0.3)',
+            borderRadius: '0.6rem',
+            padding: '0.75rem 1rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <img
+              src={
+                selectedSingleUnit.galleryImages?.[0] ||
+                selectedSingleUnit.coverImage ||
+                '/images/apt-612/apt612-4.jpg'
+              }
+              alt={selectedSingleUnit.name}
+              style={{
+                width: '60px',
+                height: '44px',
+                objectFit: 'cover',
+                borderRadius: '0.4rem',
+                border: '1px solid rgba(201,169,124,0.45)',
+              }}
+            />
+            <div>
+              <strong style={{ color: '#c9a97c', fontSize: '0.92rem' }}>
+                {selectedSingleUnit.name}
+              </strong>
+              <div style={{ fontSize: '0.76rem', color: '#9e988e' }}>
+                Dom–Jue: <strong>${selectedSingleUnit.weekdayRate}</strong> · Vie–Sáb:{' '}
+                <strong>${selectedSingleUnit.weekendRate}</strong> · Limpieza:{' '}
+                <strong>${selectedSingleUnit.cleaningFee}</strong> · Mín.{' '}
+                {selectedSingleUnit.minNights} noche(s)
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.74rem' }}>
+            <span
+              style={{
+                padding: '0.2rem 0.55rem',
+                borderRadius: '99px',
+                background: selectedSingleUnit.airbnbIcalUrl
+                  ? 'rgba(46,125,50,0.22)'
+                  : 'rgba(255,255,255,0.06)',
+                color: selectedSingleUnit.airbnbIcalUrl ? '#a5d6a7' : '#9e988e',
+              }}
+            >
+              Airbnb iCal: {selectedSingleUnit.airbnbIcalUrl ? '✓ Conectado' : 'No vinculado'}
+            </span>
+            <span
+              style={{
+                padding: '0.2rem 0.55rem',
+                borderRadius: '99px',
+                background: selectedSingleUnit.bookingIcalUrl
+                  ? 'rgba(30,136,229,0.22)'
+                  : 'rgba(255,255,255,0.06)',
+                color: selectedSingleUnit.bookingIcalUrl ? '#90caf9' : '#9e988e',
+              }}
+            >
+              Booking iCal: {selectedSingleUnit.bookingIcalUrl ? '✓ Conectado' : 'No vinculado'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* BARRA DE NAVEGACIÓN DE MES Y LEYENDA DE COLORES */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.85rem',
+          marginBottom: '0.9rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            style={{
+              padding: '0.4rem 0.75rem',
+              background: '#11100e',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '0.4rem',
+              color: '#f5f2eb',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            ← Anterior
+          </button>
+          <span
+            style={{
+              minWidth: '165px',
+              textAlign: 'center',
+              fontSize: '1.05rem',
+              fontWeight: 600,
+              color: '#f5f2eb',
+            }}
+          >
+            {MONTH_NAMES_ES[viewMonth]} {viewYear}
+          </span>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            style={{
+              padding: '0.4rem 0.75rem',
+              background: '#11100e',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '0.4rem',
+              color: '#f5f2eb',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            Siguiente →
+          </button>
+
+          {/* Atajos de meses */}
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginLeft: '0.35rem' }}>
+            {quickMonthShortcuts.map((m) => {
+              const isCurrent = m.year === viewYear && m.month === viewMonth;
+              return (
+                <button
+                  key={`${m.year}-${m.month}`}
+                  type="button"
+                  onClick={() => {
+                    setViewYear(m.year);
+                    setViewMonth(m.month);
+                  }}
+                  style={{
+                    padding: '0.3rem 0.55rem',
+                    fontSize: '0.72rem',
+                    borderRadius: '0.35rem',
+                    border: isCurrent
+                      ? '1px solid #c9a97c'
+                      : '1px solid rgba(255,255,255,0.12)',
+                    background: isCurrent ? 'rgba(201,169,124,0.2)' : 'transparent',
+                    color: isCurrent ? '#c9a97c' : '#9e988e',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Leyenda visual */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.6rem',
+            flexWrap: 'wrap',
+            fontSize: '0.72rem',
+            color: '#d5d0c5',
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(46,125,50,0.45)',
+                border: '1px solid #66bb6a',
+              }}
+            />
+            Disponible
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(255,90,95,0.45)',
+                border: '1px solid #ff787c',
+              }}
+            />
+            Airbnb (iCal)
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(30,136,229,0.45)',
+                border: '1px solid #64b5f6',
+              }}
+            />
+            Booking.com (iCal)
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(245,124,0,0.45)',
+                border: '1px solid #ffb74d',
+              }}
+            />
+            Reserva Web / Hold 2h
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(142,36,170,0.45)',
+                border: '1px solid #ce93d8',
+              }}
+            />
+            Bloqueo Manual
+          </span>
+        </div>
+      </div>
+
+      {/* CUADRÍCULA MENSUAL DE 7 COLUMNAS */}
+      <div style={{ overflowX: 'auto' }}>
+        <div
+          style={{
+            minWidth: '720px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+            gap: '0.4rem',
+          }}
+        >
+          {WEEKDAYS_ES.map((dayName) => (
+            <div
+              key={dayName}
+              style={{
+                textAlign: 'center',
+                padding: '0.4rem',
+                fontSize: '0.73rem',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: '#c9a97c',
+                background: '#11100e',
+                borderRadius: '0.35rem',
+              }}
+            >
+              {dayName}
+            </div>
+          ))}
+
+          {calendarDays.map((cell, idx) => {
+            if (!cell.dateYmd || cell.dayNumber === null) {
+              return (
+                <div
+                  key={`empty-${idx}`}
+                  style={{
+                    minHeight: '94px',
+                    background: 'rgba(17,16,14,0.35)',
+                    borderRadius: '0.45rem',
+                    border: '1px dashed rgba(255,255,255,0.04)',
+                  }}
+                />
+              );
+            }
+
+            const isToday = cell.dateYmd === todayYmd;
+            const isSelectedDate = cell.dateYmd === selectedDateYmd;
+            const allAvailable = cell.snapshots.every((s) => s.isAvailable);
+            const allOccupied = cell.snapshots.every((s) => !s.isAvailable);
+
+            return (
+              <button
+                key={cell.dateYmd}
+                type="button"
+                onClick={() => setSelectedDateYmd(cell.dateYmd!)}
+                style={{
+                  minHeight: '96px',
+                  padding: '0.45rem',
+                  borderRadius: '0.5rem',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '0.35rem',
+                  cursor: 'pointer',
+                  background: isSelectedDate
+                    ? 'rgba(201,169,124,0.16)'
+                    : allOccupied
+                    ? 'rgba(38,20,22,0.75)'
+                    : '#11100e',
+                  border: isSelectedDate
+                    ? '2px solid #c9a97c'
+                    : isToday
+                    ? '1px solid #c9a97c'
+                    : allAvailable
+                    ? '1px solid rgba(102,187,106,0.22)'
+                    : '1px solid rgba(255,120,124,0.32)',
+                  color: '#f5f2eb',
+                }}
+              >
+                {/* Fila superior del día: Número + Hoy + Temporada */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                    gap: '0.25rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.84rem',
+                      fontWeight: isToday || isSelectedDate ? 700 : 500,
+                      color: isToday ? '#c9a97c' : '#f5f2eb',
+                    }}
+                  >
+                    {cell.dayNumber}
+                    {isToday ? ' · HOY' : ''}
+                  </span>
+                  {cell.seasonLabel && (
+                    <span
+                      title={cell.seasonLabel}
+                      style={{
+                        fontSize: '0.6rem',
+                        padding: '0.08rem 0.32rem',
+                        borderRadius: '0.25rem',
+                        background: 'rgba(201,169,124,0.25)',
+                        color: '#c9a97c',
+                        maxWidth: '75px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ★ Temp.
+                    </span>
+                  )}
+                </div>
+
+                {/* Estado de cada suite activa en ese día */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.22rem',
+                    width: '100%',
+                  }}
+                >
+                  {cell.snapshots.map((snap) => {
+                    if (snap.isAvailable) {
+                      return (
+                        <div
+                          key={snap.unit.id}
+                          style={{
+                            fontSize: '0.67rem',
+                            padding: '0.16rem 0.35rem',
+                            borderRadius: '0.28rem',
+                            background: 'rgba(46, 125, 50, 0.16)',
+                            border: '1px solid rgba(102, 187, 106, 0.35)',
+                            color: '#a5d6a7',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '0.2rem',
+                          }}
+                        >
+                          <span style={{ fontWeight: 600 }}>{snap.shortCode}: Libre</span>
+                          <span>${snap.rateUsd}</span>
+                        </div>
+                      );
+                    }
+
+                    const primaryOcc = snap.occupations[0];
+                    const st = getOccupationVisualStyle(primaryOcc.kind);
+                    return (
+                      <div
+                        key={snap.unit.id}
+                        title={`${snap.unit.name}: ${primaryOcc.label} (${primaryOcc.subLabel})`}
+                        style={{
+                          fontSize: '0.67rem',
+                          padding: '0.16rem 0.35rem',
+                          borderRadius: '0.28rem',
+                          background: st.bg,
+                          border: `1px solid ${st.border}`,
+                          color: st.color,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {snap.shortCode}: {st.tag}
+                        </span>
+                        <span style={{ fontSize: '0.62rem', opacity: 0.9 }}>✕</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* PANEL INSPECTOR DE LA FECHA SELECCIONADA (DETALLE Y ACCIONES DE 1 CLIC) */}
+      <div
+        style={{
+          marginTop: '1.15rem',
+          background: '#11100e',
+          border: '1px solid rgba(201,169,124,0.35)',
+          borderRadius: '0.7rem',
+          padding: '1rem 1.15rem',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            marginBottom: '0.85rem',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '0.72rem', color: '#c9a97c', letterSpacing: '0.12em' }}>
+              INSPECTOR DE FECHA SELECCIONADA
+            </span>
+            <h3 style={{ margin: '0.15rem 0 0', fontSize: '1.02rem', fontWeight: 500 }}>
+              Detalle de Noche: {selectedDateYmd} → Check-out {getNextDateYmd(selectedDateYmd)}
+            </h3>
+          </div>
+          <small style={{ color: '#9e988e', fontSize: '0.76rem' }}>
+            Haz clic en cualquier día del calendario para inspeccionar o bloquear/liberar suites.
+          </small>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '0.85rem',
+          }}
+        >
+          {selectedDayAllUnitsSnapshots.map((snap) => {
+            const thumb =
+              snap.unit.galleryImages?.[0] ||
+              snap.unit.coverImage ||
+              '/images/apt-612/apt612-4.jpg';
+            const nextDay = getNextDateYmd(selectedDateYmd);
+
+            return (
+              <div
+                key={snap.unit.id}
+                style={{
+                  background: '#1a1815',
+                  border: snap.isAvailable
+                    ? '1px solid rgba(102,187,106,0.35)'
+                    : '1px solid rgba(255,120,124,0.4)',
+                  borderRadius: '0.6rem',
+                  padding: '0.85rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <img
+                    src={thumb}
+                    alt={snap.unit.name}
+                    style={{
+                      width: '54px',
+                      height: '42px',
+                      objectFit: 'cover',
+                      borderRadius: '0.35rem',
+                      border: '1px solid rgba(201,169,124,0.4)',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <strong
+                      style={{
+                        display: 'block',
+                        fontSize: '0.88rem',
+                        color: '#f5f2eb',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      [{snap.shortCode}] {snap.unit.name}
+                    </strong>
+                    <span style={{ fontSize: '0.76rem', color: '#c9a97c' }}>
+                      Tarifa esa noche: <strong>${snap.rateUsd} USD</strong> (
+                      {snap.rateType === 'SEASONAL'
+                        ? `Temporada: ${snap.seasonLabel}`
+                        : snap.rateType === 'WEEKEND'
+                        ? 'Fin de Semana Vie–Sáb'
+                        : 'Entre Semana Dom–Jue'}
+                      )
+                    </span>
+                  </div>
+                </div>
+
+                {snap.isAvailable ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.78rem', color: '#81c784', fontWeight: 600 }}>
+                      ✓ Disponible para reservar
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onQuickBlockNight(snap.unit.id, selectedDateYmd, nextDay)
+                        }
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          fontSize: '0.73rem',
+                          borderRadius: '0.35rem',
+                          border: '1px solid #c9a97c',
+                          background: 'rgba(201,169,124,0.2)',
+                          color: '#f5f2eb',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        🔒 Bloquear esta noche
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onPrefillManualBlock(snap.unit.id, selectedDateYmd, nextDay)
+                        }
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          fontSize: '0.73rem',
+                          borderRadius: '0.35rem',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          background: 'transparent',
+                          color: '#d5d0c5',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Rango de fechas...
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    {snap.occupations.map((occ, i) => {
+                      const st = getOccupationVisualStyle(occ.kind);
+                      return (
+                        <div
+                          key={`${occ.kind}-${i}`}
+                          style={{
+                            padding: '0.45rem 0.6rem',
+                            borderRadius: '0.4rem',
+                            background: st.bg,
+                            border: `1px solid ${st.border}`,
+                            color: st.color,
+                            fontSize: '0.75rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <div>
+                            <strong>[{st.tag}]</strong> {occ.label}
+                            <div style={{ fontSize: '0.7rem', opacity: 0.85 }}>
+                              Fechas: {occ.subLabel}
+                            </div>
+                          </div>
+
+                          {occ.blockId !== undefined && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteBlock(occ.blockId!)}
+                              style={{
+                                padding: '0.25rem 0.55rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '0.3rem',
+                                border: '1px solid rgba(255,255,255,0.35)',
+                                background: 'rgba(0,0,0,0.35)',
+                                color: '#fff',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Liberar
+                            </button>
+                          )}
+
+                          {occ.bookingId && occ.bookingCode && (
+                            <div style={{ display: 'flex', gap: '0.3rem' }}>
+                              {occ.kind === 'PENDING_HOLD' && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onUpdateBookingStatus(
+                                      occ.bookingId!,
+                                      'CONFIRMED',
+                                      occ.bookingCode!
+                                    )
+                                  }
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.7rem',
+                                    borderRadius: '0.3rem',
+                                    border: 'none',
+                                    background: '#2e7d32',
+                                    color: '#fff',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Confirmar
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onUpdateBookingStatus(
+                                    occ.bookingId!,
+                                    'CANCELLED',
+                                    occ.bookingCode!
+                                  )
+                                }
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  fontSize: '0.7rem',
+                                  borderRadius: '0.3rem',
+                                  border: 'none',
+                                  background: '#c62828',
+                                  color: '#fff',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 };

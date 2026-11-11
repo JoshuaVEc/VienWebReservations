@@ -87,6 +87,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   try {
     if (req.method === 'GET') {
+      await syncExternalCalendarsIfNeeded(false);
       const origin = getRequestOrigin(req);
       const [units, seasonalRates, bookings, calendarBlocks] = await Promise.all([
         dbRepository.getUnits(),
@@ -162,6 +163,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
           airbnbIcalUrl: body.airbnbIcalUrl ? String(body.airbnbIcalUrl).trim() || null : null,
           bookingIcalUrl: body.bookingIcalUrl ? String(body.bookingIcalUrl).trim() || null : null,
         });
+        if (created.airbnbIcalUrl || created.bookingIcalUrl) {
+          await syncExternalCalendarsIfNeeded(true);
+        }
         sendJson(res, 201, { unit: created });
         return;
       }
@@ -210,6 +214,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         if (!updated) {
           sendJson(res, 404, { error: 'Suite no encontrada' });
           return;
+        }
+        if (updated.airbnbIcalUrl || updated.bookingIcalUrl) {
+          await syncExternalCalendarsIfNeeded(true);
         }
         sendJson(res, 200, { unit: updated });
         return;
