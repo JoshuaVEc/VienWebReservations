@@ -560,123 +560,259 @@ export const AdminDashboard: React.FC<{
         }}
       />
 
-      {/* 1. RESERVAS & PRE-RESERVAS DE 2 HORAS */}
-      <section style={{ marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.15rem', color: '#c9a97c', fontWeight: 400, marginBottom: '0.75rem' }}>
-          1. Reservas y Bloqueos Temporales de 2 Horas ({data.bookings.length})
-        </h2>
-        {data.bookings.length === 0 ? (
-          <p style={{ color: '#9e988e', fontSize: '0.9rem' }}>
-            Aún no hay reservas registradas. Prueba creando una desde el formulario de la web.
-          </p>
-        ) : (
-          <div style={{ display: 'grid', gap: '0.85rem' }}>
-            {data.bookings.map((b) => {
-              const isExpiredPending =
-                b.status === 'PENDING' && new Date(b.expiresAt).getTime() <= Date.now();
-              const matchedUnit = data.units.find((u) => u.id === b.unitSelection);
-              return (
-                <div
-                  key={b.id}
-                  style={{
-                    background: '#1a1815',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '0.75rem',
-                    padding: '1rem 1.25rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '1rem',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <strong>{b.bookingCode}</strong>
-                      <span
+      {/* 1. RESERVAS & PRE-RESERVAS DE 2 HORAS (PENDIENTES DE CONFIRMAR PAGO) */}
+      {(() => {
+        const pendingOrHoldBookings = data.bookings.filter((b) => b.status !== 'CONFIRMED');
+        const confirmedWebBookings = data.bookings.filter((b) => b.status === 'CONFIRMED');
+
+        return (
+          <>
+            <section style={{ marginBottom: '2rem' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  color: '#c9a97c',
+                  fontWeight: 400,
+                  marginBottom: '0.75rem',
+                }}
+              >
+                1. Reservas y Bloqueos Temporales de 2 Horas ({pendingOrHoldBookings.length})
+              </h2>
+              {pendingOrHoldBookings.length === 0 ? (
+                <p style={{ color: '#9e988e', fontSize: '0.9rem' }}>
+                  No hay pre-reservas pendientes por confirmar en este momento.
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gap: '0.85rem' }}>
+                  {pendingOrHoldBookings.map((b) => {
+                    const isExpiredPending =
+                      b.status === 'PENDING' && new Date(b.expiresAt).getTime() <= Date.now();
+                    const matchedUnit = data.units.find((u) => u.id === b.unitSelection);
+                    return (
+                      <div
+                        key={b.id}
                         style={{
-                          fontSize: '0.72rem',
-                          padding: '0.15rem 0.55rem',
-                          borderRadius: '99px',
-                          background:
-                            b.status === 'CONFIRMED'
-                              ? 'rgba(46,125,50,0.3)'
-                              : b.status === 'CANCELLED' || isExpiredPending
-                              ? 'rgba(198,40,40,0.25)'
-                              : 'rgba(245,124,0,0.3)',
+                          background: '#1a1815',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '0.75rem',
+                          padding: '1rem 1.25rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '1rem',
                         }}
                       >
-                        {isExpiredPending ? 'PENDING EXPIRADA (>2H)' : b.status}
-                      </span>
-                      <span style={{ color: '#c9a97c', fontSize: '0.85rem' }}>
-                        {b.unitSelection === 'vien-residence-experience'
-                          ? 'Reserva Combinada (Todas las Suites)'
-                          : matchedUnit?.name || b.unitSelection}
-                      </span>
-                    </div>
-                    <p style={{ margin: '0.35rem 0', fontSize: '0.88rem' }}>
-                      📅 <strong>{b.checkIn}</strong> al <strong>{b.checkOut}</strong> ({b.nights}{' '}
-                      noches) · 💵 <strong>${b.totalPriceUsd} USD</strong> · 👤 {b.guestName} (
-                      {b.guestPhone} / {b.guestEmail})
-                    </p>
-                    {b.status === 'PENDING' && !isExpiredPending && (
-                      <small style={{ color: '#ffb74d' }}>
-                        ⏳ Bloqueo temporal de 2h vence a las:{' '}
-                        {new Date(b.expiresAt).toLocaleTimeString()}
-                      </small>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {b.status !== 'CONFIRMED' && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void runMutation(
-                            { op: 'updateBookingStatus', id: b.id, status: 'CONFIRMED' },
-                            `Reserva ${b.bookingCode} CONFIRMADA y bloqueada en iCal`
-                          )
-                        }
-                        style={{
-                          padding: '0.5rem 0.9rem',
-                          borderRadius: '0.4rem',
-                          border: 'none',
-                          background: '#2e7d32',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        ✅ Confirmar Pago
-                      </button>
-                    )}
-                    {b.status !== 'CANCELLED' && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void runMutation(
-                            { op: 'updateBookingStatus', id: b.id, status: 'CANCELLED' },
-                            `Reserva ${b.bookingCode} CANCELADA y fechas liberadas`
-                          )
-                        }
-                        style={{
-                          padding: '0.5rem 0.9rem',
-                          borderRadius: '0.4rem',
-                          border: 'none',
-                          background: '#c62828',
-                          color: '#fff',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        ✕ Cancelar / Liberar
-                      </button>
-                    )}
-                  </div>
+                        <div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '0.6rem',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <strong>{b.bookingCode}</strong>
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '0.15rem 0.55rem',
+                                borderRadius: '99px',
+                                background:
+                                  b.status === 'CANCELLED' || isExpiredPending
+                                    ? 'rgba(198,40,40,0.25)'
+                                    : 'rgba(245,124,0,0.3)',
+                              }}
+                            >
+                              {isExpiredPending ? 'PENDING EXPIRADA (>2H)' : b.status}
+                            </span>
+                            <span style={{ color: '#c9a97c', fontSize: '0.85rem' }}>
+                              {b.unitSelection === 'vien-residence-experience'
+                                ? 'Reserva Combinada (Todas las Suites)'
+                                : matchedUnit?.name || b.unitSelection}
+                            </span>
+                          </div>
+                          <p style={{ margin: '0.35rem 0', fontSize: '0.88rem' }}>
+                            📅 <strong>{b.checkIn}</strong> al <strong>{b.checkOut}</strong> (
+                            {b.nights} noches) · 💵 <strong>${b.totalPriceUsd} USD</strong> · 👤{' '}
+                            {b.guestName} ({b.guestPhone} / {b.guestEmail})
+                          </p>
+                          {b.status === 'PENDING' && !isExpiredPending && (
+                            <small style={{ color: '#ffb74d' }}>
+                              ⏳ Bloqueo temporal de 2h vence a las:{' '}
+                              {new Date(b.expiresAt).toLocaleTimeString()}
+                            </small>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void runMutation(
+                                { op: 'updateBookingStatus', id: b.id, status: 'CONFIRMED' },
+                                `Reserva ${b.bookingCode} CONFIRMADA y movida a Reservas hechas desde la Web`
+                              )
+                            }
+                            style={{
+                              padding: '0.5rem 0.9rem',
+                              borderRadius: '0.4rem',
+                              border: 'none',
+                              background: '#2e7d32',
+                              color: '#fff',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                            }}
+                          >
+                            ✅ Confirmar Pago
+                          </button>
+                          {b.status !== 'CANCELLED' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void runMutation(
+                                  { op: 'updateBookingStatus', id: b.id, status: 'CANCELLED' },
+                                  `Reserva ${b.bookingCode} CANCELADA y fechas liberadas`
+                                )
+                              }
+                              style={{
+                                padding: '0.5rem 0.9rem',
+                                borderRadius: '0.4rem',
+                                border: 'none',
+                                background: '#c62828',
+                                color: '#fff',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              ✕ Cancelar / Liberar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+              )}
+            </section>
+
+            {/* SECCIÓN DE RESERVAS HECHAS DESDE LA WEB (CONFIRMADAS) */}
+            <section style={{ marginBottom: '2.5rem' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  color: '#c9a97c',
+                  fontWeight: 400,
+                  marginBottom: '0.75rem',
+                }}
+              >
+                ✓ Reservas hechas desde la Web ({confirmedWebBookings.length})
+              </h2>
+              {confirmedWebBookings.length === 0 ? (
+                <p style={{ color: '#9e988e', fontSize: '0.9rem' }}>
+                  Aún no hay reservas web con pago confirmado. Al confirmar una pre-reserva arriba,
+                  pasará automáticamente a esta sección.
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gap: '0.85rem' }}>
+                  {confirmedWebBookings.map((b) => {
+                    const matchedUnit = data.units.find((u) => u.id === b.unitSelection);
+                    return (
+                      <div
+                        key={b.id}
+                        style={{
+                          background: '#1a1815',
+                          border: '1px solid rgba(201,169,124,0.45)',
+                          borderRadius: '0.75rem',
+                          padding: '1rem 1.25rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '1rem',
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '0.6rem',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <strong>{b.bookingCode}</strong>
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '0.18rem 0.65rem',
+                                borderRadius: '99px',
+                                background: 'rgba(201,169,124,0.28)',
+                                border: '1px solid #c9a97c',
+                                color: '#f5e6d3',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Reserva desde Web Confirmada
+                            </span>
+                            <span style={{ color: '#c9a97c', fontSize: '0.85rem' }}>
+                              {b.unitSelection === 'vien-residence-experience'
+                                ? 'Reserva Combinada (Todas las Suites)'
+                                : matchedUnit?.name || b.unitSelection}
+                            </span>
+                          </div>
+                          <p style={{ margin: '0.35rem 0', fontSize: '0.88rem' }}>
+                            📅 <strong>{b.checkIn}</strong> al <strong>{b.checkOut}</strong> (
+                            {b.nights} noches) · 💵 <strong>${b.totalPriceUsd} USD</strong> · 👤{' '}
+                            {b.guestName} ({b.guestPhone} / {b.guestEmail})
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          {b.whatsappUrl && (
+                            <a
+                              href={b.whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '0.5rem 0.85rem',
+                                borderRadius: '0.4rem',
+                                border: '1px solid rgba(201,169,124,0.45)',
+                                background: 'rgba(201,169,124,0.14)',
+                                color: '#f5f2eb',
+                                textDecoration: 'none',
+                                fontSize: '0.8rem',
+                              }}
+                            >
+                              💬 WhatsApp
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void runMutation(
+                                { op: 'updateBookingStatus', id: b.id, status: 'CANCELLED' },
+                                `Reserva ${b.bookingCode} CANCELADA y fechas liberadas`
+                              )
+                            }
+                            style={{
+                              padding: '0.5rem 0.9rem',
+                              borderRadius: '0.4rem',
+                              border: 'none',
+                              background: '#c62828',
+                              color: '#fff',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            ✕ Cancelar / Liberar Fechas
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        );
+      })()}
 
       {/* 2. GESTIÓN DINÁMICA DE SUITES (EDITAR, SUBIR FOTOS, ICAL Y ELIMINAR) */}
       <section id="admin-suites-section" style={{ marginBottom: '2.5rem' }}>
@@ -2320,10 +2456,10 @@ function getOccupationVisualStyle(kind: UnitDayOccupation['kind']): {
   switch (kind) {
     case 'CONFIRMED':
       return {
-        bg: 'rgba(46, 125, 50, 0.32)',
-        border: 'rgba(102, 187, 106, 0.65)',
-        color: '#b9f6ca',
-        tag: 'Web Confirmada',
+        bg: 'rgba(201, 169, 124, 0.32)',
+        border: '#c9a97c',
+        color: '#f5e6d3',
+        tag: 'Reserva desde Web Confirmada',
       };
     case 'PENDING_HOLD':
       return {
@@ -2852,8 +2988,31 @@ const AdminAvailabilityCalendar: React.FC<{
             Siguiente →
           </button>
 
+          {/* Selector directo de Mes/Año + Atajos */}
+          <input
+            type="month"
+            aria-label="Ir a mes y año"
+            value={`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}`}
+            onChange={(e) => {
+              const [y, m] = e.target.value.split('-').map(Number);
+              if (y && m) {
+                setViewYear(y);
+                setViewMonth(m - 1);
+              }
+            }}
+            style={{
+              padding: '0.32rem 0.55rem',
+              fontSize: '0.75rem',
+              borderRadius: '0.35rem',
+              border: '1px solid rgba(201,169,124,0.4)',
+              background: '#11100e',
+              color: '#f5f2eb',
+              cursor: 'pointer',
+            }}
+          />
+
           {/* Atajos de meses */}
-          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginLeft: '0.35rem' }}>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginLeft: '0.2rem' }}>
             {quickMonthShortcuts.map((m) => {
               const isCurrent = m.year === viewYear && m.month === viewMonth;
               return (
@@ -2911,6 +3070,30 @@ const AdminAvailabilityCalendar: React.FC<{
                 width: '10px',
                 height: '10px',
                 borderRadius: '2px',
+                background: 'rgba(201,169,124,0.45)',
+                border: '1px solid #c9a97c',
+              }}
+            />
+            Reserva desde Web Confirmada
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
+                background: 'rgba(245,124,0,0.45)',
+                border: '1px solid #ffb74d',
+              }}
+            />
+            Pre-Reserva Hold 2h
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '2px',
                 background: 'rgba(255,90,95,0.45)',
                 border: '1px solid #ff787c',
               }}
@@ -2928,18 +3111,6 @@ const AdminAvailabilityCalendar: React.FC<{
               }}
             />
             Booking.com (iCal)
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-            <span
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '2px',
-                background: 'rgba(245,124,0,0.45)',
-                border: '1px solid #ffb74d',
-              }}
-            />
-            Reserva Web / Hold 2h
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
             <span
