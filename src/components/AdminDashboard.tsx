@@ -425,7 +425,19 @@ export const AdminDashboard: React.FC<{
         <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
           <button
             type="button"
-            onClick={() => setIsCreateOpen((prev) => !prev)}
+            onClick={() => {
+              setIsCreateOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  setTimeout(() => {
+                    document
+                      .getElementById('admin-create-suite-form')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 50);
+                }
+                return next;
+              });
+            }}
             style={{
               padding: '0.6rem 1.1rem',
               borderRadius: '0.5rem',
@@ -505,505 +517,6 @@ export const AdminDashboard: React.FC<{
         >
           {statusMessage}
         </div>
-      )}
-
-      {/* FORMULARIO DESPLEGABLE PARA CREAR NUEVA SUITE */}
-      {isCreateOpen && (
-        <section
-          style={{
-            background: '#1a1815',
-            border: '1px solid #c9a97c',
-            borderRadius: '0.9rem',
-            padding: '1.5rem',
-            marginBottom: '2.5rem',
-            boxShadow: '0 18px 48px rgba(0,0,0,0.5)',
-          }}
-        >
-          <h2 style={{ margin: '0 0 1rem', fontSize: '1.2rem', color: '#c9a97c' }}>
-            ✨ Registrar Nueva Suite / Propiedad
-          </h2>
-          <form
-            onSubmit={(e) => void handleCreateUnitSubmit(e)}
-            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '0.85rem',
-              }}
-            >
-              <label style={{ fontSize: '0.78rem' }}>
-                Nombre de la Suite *
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Suite 504 — Piso 5 | Vista al Mar"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Número / Código Corto (Ej. 504)
-                <input
-                  type="text"
-                  placeholder="Ej. 504"
-                  value={newUnitNumber}
-                  onChange={(e) => setNewUnitNumber(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Subtítulo / Tagline
-                <input
-                  type="text"
-                  placeholder="QUINTO PISO · 55 M² · VISTA AL MAR"
-                  value={newTagline}
-                  onChange={(e) => setNewTagline(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '0.85rem',
-              }}
-            >
-              <label style={{ fontSize: '0.78rem' }}>
-                Distribución de Camas
-                <input
-                  type="text"
-                  placeholder="2 Camas de 2 Plazas + Sofá Cama"
-                  value={newBedsLabel}
-                  onChange={(e) => setNewBedsLabel(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Ubicación / Etiqueta de Capacidad
-                <input
-                  type="text"
-                  placeholder="Quinto Piso · Makana Resort"
-                  value={newCapacityLabel}
-                  onChange={(e) => setNewCapacityLabel(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Máximo de Huéspedes
-                <input
-                  type="number"
-                  min={1}
-                  max={16}
-                  value={newMaxGuests}
-                  onChange={(e) => setNewMaxGuests(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.55rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                  }}
-                />
-              </label>
-            </div>
-
-            <label style={{ fontSize: '0.78rem' }}>
-              Descripción de la Suite
-              <textarea
-                rows={2}
-                placeholder="Describe el equipamiento, vista al mar, cocina, balcón..."
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                style={{
-                  width: '100%',
-                  marginTop: '0.25rem',
-                  padding: '0.55rem',
-                  background: '#11100e',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '0.35rem',
-                  fontFamily: 'inherit',
-                }}
-              />
-            </label>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                gap: '0.85rem',
-              }}
-            >
-              <label style={{ fontSize: '0.78rem' }}>
-                Tarifa Dom–Jue ($ USD)
-                <input
-                  type="number"
-                  required
-                  value={newWeekdayRate}
-                  onChange={(e) => setNewWeekdayRate(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Tarifa Vie–Sáb ($ USD)
-                <input
-                  type="number"
-                  required
-                  value={newWeekendRate}
-                  onChange={(e) => setNewWeekendRate(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Limpieza ($ USD)
-                <input
-                  type="number"
-                  required
-                  value={newCleaningFee}
-                  onChange={(e) => setNewCleaningFee(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                Mín. Noches
-                <input
-                  type="number"
-                  min={1}
-                  required
-                  value={newMinNights}
-                  onChange={(e) => setNewMinNights(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-            </div>
-
-            {/* SUBIDA DE ARCHIVOS DE IMAGEN LOCALES (PNG / JPG / WEBP) */}
-            <div
-              style={{
-                background: '#11100e',
-                border: '1px dashed rgba(201,169,124,0.5)',
-                borderRadius: '0.6rem',
-                padding: '1rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                }}
-              >
-                <div>
-                  <strong style={{ color: '#c9a97c', fontSize: '0.85rem' }}>
-                    📷 Imágenes de la Suite (Sube archivos PNG / JPG desde tu computadora)
-                  </strong>
-                  <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#9e988e' }}>
-                    La primera imagen será la foto principal de portada. Se comprimen y optimizan
-                    automáticamente.
-                  </p>
-                </div>
-                <label
-                  style={{
-                    padding: '0.55rem 1rem',
-                    background: 'rgba(201,169,124,0.2)',
-                    border: '1px solid #c9a97c',
-                    borderRadius: '0.4rem',
-                    color: '#f5f2eb',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {isUploadingNewImg ? 'Procesando fotos...' : '📁 Seleccionar Archivos (PNG / JPG)'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => void handleNewFilesSelected(e)}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-              </div>
-
-              {/* Opción adicional por URL */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                <input
-                  type="text"
-                  placeholder="O pega una ruta/URL de imagen (ej. /images/apt-612/apt612-1.jpg)"
-                  value={newImageUrlInput}
-                  onChange={(e) => setNewImageUrlInput(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '0.45rem 0.65rem',
-                    background: '#1a1815',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    borderRadius: '0.35rem',
-                    fontSize: '0.78rem',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (newImageUrlInput.trim()) {
-                      setNewGalleryImages((prev) => [...prev, newImageUrlInput.trim()]);
-                      setNewImageUrlInput('');
-                    }
-                  }}
-                  style={{
-                    padding: '0.45rem 0.85rem',
-                    background: 'rgba(255,255,255,0.1)',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '0.35rem',
-                    cursor: 'pointer',
-                    fontSize: '0.78rem',
-                  }}
-                >
-                  + Añadir URL
-                </button>
-              </div>
-
-              {/* Previsualización de miniaturas */}
-              {newGalleryImages.length > 0 && (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                    gap: '0.65rem',
-                    marginTop: '0.9rem',
-                  }}
-                >
-                  {newGalleryImages.map((imgSrc, idx) => (
-                    <div
-                      key={`${idx}-${imgSrc.slice(0, 24)}`}
-                      style={{
-                        position: 'relative',
-                        border: idx === 0 ? '2px solid #c9a97c' : '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '0.45rem',
-                        overflow: 'hidden',
-                        background: '#000',
-                      }}
-                    >
-                      <img
-                        src={imgSrc}
-                        alt={`Previsualización ${idx + 1}`}
-                        style={{
-                          width: '100%',
-                          height: '86px',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                      />
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '0.25rem 0.35rem',
-                          background: 'rgba(17,16,14,0.9)',
-                          fontSize: '0.68rem',
-                        }}
-                      >
-                        {idx === 0 ? (
-                          <span style={{ color: '#c9a97c', fontWeight: 700 }}>★ Portada</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setNewGalleryImages((prev) => {
-                                const copy = [...prev];
-                                const [picked] = copy.splice(idx, 1);
-                                return [picked, ...copy];
-                              });
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#d5d0c5',
-                              cursor: 'pointer',
-                              padding: 0,
-                              fontSize: '0.68rem',
-                            }}
-                          >
-                            Hacer portada
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setNewGalleryImages((prev) => prev.filter((_, i) => i !== idx))
-                          }
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#ff8a80',
-                            cursor: 'pointer',
-                            padding: 0,
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '0.85rem',
-              }}
-            >
-              <label style={{ fontSize: '0.78rem' }}>
-                URL iCal de Airbnb (Opcional)
-                <input
-                  type="url"
-                  placeholder="https://www.airbnb.com/calendar/ical/..."
-                  value={newAirbnbIcal}
-                  onChange={(e) => setNewAirbnbIcal(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-              <label style={{ fontSize: '0.78rem' }}>
-                URL iCal de Booking.com (Opcional)
-                <input
-                  type="url"
-                  placeholder="https://ical.booking.com/v1/export?t=..."
-                  value={newBookingIcal}
-                  onChange={(e) => setNewBookingIcal(e.target.value)}
-                  style={{
-                    width: '100%',
-                    marginTop: '0.25rem',
-                    padding: '0.5rem',
-                    background: '#11100e',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                />
-              </label>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button
-                type="button"
-                onClick={() => setIsCreateOpen(false)}
-                style={{
-                  padding: '0.65rem 1.2rem',
-                  background: 'transparent',
-                  color: '#f5f2eb',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '0.45rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                style={{
-                  padding: '0.65rem 1.4rem',
-                  background: '#c9a97c',
-                  color: '#11100e',
-                  border: 'none',
-                  borderRadius: '0.45rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                ✓ Guardar y Publicar Suite
-              </button>
-            </div>
-          </form>
-        </section>
       )}
 
       {/* CALENDARIO VISUAL INTERACTIVO Y DINÁMICO DE TODAS LAS SUITES */}
@@ -1166,7 +679,7 @@ export const AdminDashboard: React.FC<{
       </section>
 
       {/* 2. GESTIÓN DINÁMICA DE SUITES (EDITAR, SUBIR FOTOS, ICAL Y ELIMINAR) */}
-      <section style={{ marginBottom: '2.5rem' }}>
+      <section id="admin-suites-section" style={{ marginBottom: '2.5rem' }}>
         <div
           style={{
             display: 'flex',
@@ -1180,24 +693,536 @@ export const AdminDashboard: React.FC<{
           <h2 style={{ fontSize: '1.15rem', color: '#c9a97c', fontWeight: 400, margin: 0 }}>
             2. Suites Activas: Información, Fotos, Tarifas e iCal ({data.units.length})
           </h2>
-          {!isCreateOpen && (
-            <button
-              type="button"
-              onClick={() => setIsCreateOpen(true)}
-              style={{
-                padding: '0.45rem 0.9rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c9a97c',
-                background: 'rgba(201,169,124,0.18)',
-                color: '#f5f2eb',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-              }}
-            >
-              + Agregar Otra Suite
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              setIsCreateOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  setTimeout(() => {
+                    document
+                      .getElementById('admin-create-suite-form')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 50);
+                }
+                return next;
+              });
+            }}
+            style={{
+              padding: '0.45rem 0.9rem',
+              borderRadius: '0.4rem',
+              border: '1px solid #c9a97c',
+              background: isCreateOpen ? 'rgba(198,40,40,0.22)' : 'rgba(201,169,124,0.18)',
+              color: '#f5f2eb',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {isCreateOpen ? '✕ Cerrar Formulario' : '+ Agregar Otra Suite'}
+          </button>
         </div>
+
+        {/* FORMULARIO DESPLEGABLE PARA CREAR NUEVA SUITE */}
+        {isCreateOpen && (
+          <div
+            id="admin-create-suite-form"
+            style={{
+              background: '#1a1815',
+              border: '1px solid #c9a97c',
+              borderRadius: '0.9rem',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              boxShadow: '0 18px 48px rgba(0,0,0,0.5)',
+            }}
+          >
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', color: '#c9a97c' }}>
+              ✨ Registrar Nueva Suite / Propiedad
+            </h3>
+            <form
+              onSubmit={(e) => void handleCreateUnitSubmit(e)}
+              style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '0.85rem',
+                }}
+              >
+                <label style={{ fontSize: '0.78rem' }}>
+                  Nombre de la Suite *
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Suite 504 — Piso 5 | Vista al Mar"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Número / Código Corto (Ej. 504)
+                  <input
+                    type="text"
+                    placeholder="Ej. 504"
+                    value={newUnitNumber}
+                    onChange={(e) => setNewUnitNumber(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Subtítulo / Tagline
+                  <input
+                    type="text"
+                    placeholder="QUINTO PISO · 55 M² · VISTA AL MAR"
+                    value={newTagline}
+                    onChange={(e) => setNewTagline(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.85rem',
+                }}
+              >
+                <label style={{ fontSize: '0.78rem' }}>
+                  Distribución de Camas
+                  <input
+                    type="text"
+                    placeholder="2 Camas de 2 Plazas + Sofá Cama"
+                    value={newBedsLabel}
+                    onChange={(e) => setNewBedsLabel(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Ubicación / Etiqueta de Capacidad
+                  <input
+                    type="text"
+                    placeholder="Quinto Piso · Makana Resort"
+                    value={newCapacityLabel}
+                    onChange={(e) => setNewCapacityLabel(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Máximo de Huéspedes
+                  <input
+                    type="number"
+                    min={1}
+                    max={16}
+                    value={newMaxGuests}
+                    onChange={(e) => setNewMaxGuests(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.55rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                    }}
+                  />
+                </label>
+              </div>
+
+              <label style={{ fontSize: '0.78rem' }}>
+                Descripción de la Suite
+                <textarea
+                  rows={2}
+                  placeholder="Describe el equipamiento, vista al mar, cocina, balcón..."
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    padding: '0.55rem',
+                    background: '#11100e',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '0.35rem',
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </label>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: '0.85rem',
+                }}
+              >
+                <label style={{ fontSize: '0.78rem' }}>
+                  Tarifa Dom–Jue ($ USD)
+                  <input
+                    type="number"
+                    required
+                    value={newWeekdayRate}
+                    onChange={(e) => setNewWeekdayRate(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Tarifa Vie–Sáb ($ USD)
+                  <input
+                    type="number"
+                    required
+                    value={newWeekendRate}
+                    onChange={(e) => setNewWeekendRate(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Limpieza ($ USD)
+                  <input
+                    type="number"
+                    required
+                    value={newCleaningFee}
+                    onChange={(e) => setNewCleaningFee(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  Mín. Noches
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={newMinNights}
+                    onChange={(e) => setNewMinNights(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* SUBIDA DE ARCHIVOS DE IMAGEN LOCALES (PNG / JPG / WEBP) */}
+              <div
+                style={{
+                  background: '#11100e',
+                  border: '1px dashed rgba(201,169,124,0.5)',
+                  borderRadius: '0.6rem',
+                  padding: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: '#c9a97c', fontSize: '0.85rem' }}>
+                      📷 Imágenes de la Suite (Sube archivos PNG / JPG desde tu computadora)
+                    </strong>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#9e988e' }}>
+                      La primera imagen será la foto principal de portada. Se comprimen y optimizan
+                      automáticamente.
+                    </p>
+                  </div>
+                  <label
+                    style={{
+                      padding: '0.55rem 1rem',
+                      background: 'rgba(201,169,124,0.2)',
+                      border: '1px solid #c9a97c',
+                      borderRadius: '0.4rem',
+                      color: '#f5f2eb',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isUploadingNewImg ? 'Procesando fotos...' : '📁 Seleccionar Archivos (PNG / JPG)'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => void handleNewFilesSelected(e)}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+
+                {/* Opción adicional por URL */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <input
+                    type="text"
+                    placeholder="O pega una ruta/URL de imagen (ej. /images/apt-612/apt612-1.jpg)"
+                    value={newImageUrlInput}
+                    onChange={(e) => setNewImageUrlInput(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '0.45rem 0.65rem',
+                      background: '#1a1815',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      borderRadius: '0.35rem',
+                      fontSize: '0.78rem',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newImageUrlInput.trim()) {
+                        setNewGalleryImages((prev) => [...prev, newImageUrlInput.trim()]);
+                        setNewImageUrlInput('');
+                      }
+                    }}
+                    style={{
+                      padding: '0.45rem 0.85rem',
+                      background: 'rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.35rem',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                    }}
+                  >
+                    + Añadir URL
+                  </button>
+                </div>
+
+                {/* Previsualización de miniaturas */}
+                {newGalleryImages.length > 0 && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                      gap: '0.65rem',
+                      marginTop: '0.9rem',
+                    }}
+                  >
+                    {newGalleryImages.map((imgSrc, idx) => (
+                      <div
+                        key={`${idx}-${imgSrc.slice(0, 24)}`}
+                        style={{
+                          position: 'relative',
+                          border: idx === 0 ? '2px solid #c9a97c' : '1px solid rgba(255,255,255,0.15)',
+                          borderRadius: '0.45rem',
+                          overflow: 'hidden',
+                          background: '#000',
+                        }}
+                      >
+                        <img
+                          src={imgSrc}
+                          alt={`Previsualización ${idx + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '86px',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '0.25rem 0.35rem',
+                            background: 'rgba(17,16,14,0.9)',
+                            fontSize: '0.68rem',
+                          }}
+                        >
+                          {idx === 0 ? (
+                            <span style={{ color: '#c9a97c', fontWeight: 700 }}>★ Portada</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewGalleryImages((prev) => {
+                                  const copy = [...prev];
+                                  const [picked] = copy.splice(idx, 1);
+                                  return [picked, ...copy];
+                                });
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#d5d0c5',
+                                cursor: 'pointer',
+                                padding: 0,
+                                fontSize: '0.68rem',
+                              }}
+                            >
+                              Hacer portada
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewGalleryImages((prev) => prev.filter((_, i) => i !== idx))
+                            }
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#ff8a80',
+                              cursor: 'pointer',
+                              padding: 0,
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '0.85rem',
+                }}
+              >
+                <label style={{ fontSize: '0.78rem' }}>
+                  URL iCal de Airbnb (Opcional)
+                  <input
+                    type="url"
+                    placeholder="https://www.airbnb.com/calendar/ical/..."
+                    value={newAirbnbIcal}
+                    onChange={(e) => setNewAirbnbIcal(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: '0.78rem' }}>
+                  URL iCal de Booking.com (Opcional)
+                  <input
+                    type="url"
+                    placeholder="https://ical.booking.com/v1/export?t=..."
+                    value={newBookingIcal}
+                    onChange={(e) => setNewBookingIcal(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      background: '#11100e',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(false)}
+                  style={{
+                    padding: '0.65rem 1.2rem',
+                    background: 'transparent',
+                    color: '#f5f2eb',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '0.45rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.65rem 1.4rem',
+                    background: '#c9a97c',
+                    color: '#11100e',
+                    border: 'none',
+                    borderRadius: '0.45rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✓ Guardar y Publicar Suite
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         <div
           style={{
             display: 'grid',
@@ -1213,7 +1238,7 @@ export const AdminDashboard: React.FC<{
                 data.icalExportUrls[u.id] || `${window.location.origin}/api/ical/${u.id}.ics`
               }
               onSave={(patch) =>
-                void runMutation(
+                runMutation(
                   { op: 'updateUnit', unitId: u.id, ...patch },
                   `Cambios guardados en ${patch.name || u.name}`
                 )
@@ -1592,7 +1617,7 @@ export const AdminDashboard: React.FC<{
 const UnitConfigCard: React.FC<{
   unit: AdminUnit;
   exportUrl: string;
-  onSave: (patch: Partial<AdminUnit>) => void;
+  onSave: (patch: Partial<AdminUnit>) => Promise<boolean> | void;
   onDelete: () => void;
 }> = ({ unit, exportUrl, onSave, onDelete }) => {
   const [name, setName] = useState(unit.name);
@@ -1619,6 +1644,7 @@ const UnitConfigCard: React.FC<{
   );
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSavingUnit, setIsSavingUnit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -1639,26 +1665,54 @@ const UnitConfigCard: React.FC<{
     }
   };
 
+  const handleSaveAndClose = async () => {
+    setIsSavingUnit(true);
+    try {
+      const result = await onSave({
+        name,
+        unitNumber,
+        tagline,
+        bedsLabel,
+        capacityLabel,
+        maxGuests,
+        description,
+        coverImage: galleryImages[0] || unit.coverImage || '/images/apt-612/apt612-4.jpg',
+        galleryImages,
+        weekdayRate,
+        weekendRate,
+        cleaningFee,
+        minNights,
+        airbnbIcalUrl,
+        bookingIcalUrl,
+      });
+      if (result !== false) {
+        setIsDetailsExpanded(false);
+      }
+    } finally {
+      setIsSavingUnit(false);
+    }
+  };
+
   return (
     <div
       style={{
         background: '#1a1815',
         border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: '0.85rem',
-        padding: '1.25rem',
+        padding: '1.1rem 1.25rem',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.85rem',
+        gap: '0.75rem',
       }}
     >
-      {/* Cabecera con miniatura de portada y botones de edición / eliminación */}
+      {/* Cabecera compacta: foto pequeña, nombre de suite e ID */}
       <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
         <img
           src={galleryImages[0] || unit.coverImage || '/images/apt-612/apt612-4.jpg'}
           alt={name}
           style={{
-            width: '76px',
-            height: '58px',
+            width: '68px',
+            height: '52px',
             objectFit: 'cover',
             borderRadius: '0.45rem',
             border: '1px solid rgba(201,169,124,0.4)',
@@ -1666,8 +1720,8 @@ const UnitConfigCard: React.FC<{
           }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.02rem', color: '#c9a97c', wordBreak: 'break-word' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ margin: 0, fontSize: '0.98rem', color: '#c9a97c', wordBreak: 'break-word' }}>
               {name}
             </h3>
             <span
@@ -1683,13 +1737,10 @@ const UnitConfigCard: React.FC<{
               ID: {unit.id}
             </span>
           </div>
-          <small style={{ color: '#9e988e', display: 'block', marginTop: '0.15rem' }}>
-            {tagline} · Máx. {maxGuests} huéspedes
-          </small>
         </div>
       </div>
 
-      {/* Botón para expandir edición de textos y fotos */}
+      {/* Botón para expandir edición de información, fotos, tarifas e iCal */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <button
           type="button"
@@ -1706,7 +1757,7 @@ const UnitConfigCard: React.FC<{
           }}
         >
           {isDetailsExpanded
-            ? '▲ Ocultar Detalles y Galería de Fotos'
+            ? '▲ Cerrar Edición de Información y Fotos'
             : `✎ Editar Información y Fotos (${galleryImages.length})`}
         </button>
 
@@ -1763,17 +1814,17 @@ const UnitConfigCard: React.FC<{
         )}
       </div>
 
-      {/* SECCIÓN EXPANDIBLE: TEXTOS Y SUBIDA DE IMÁGENES LOCALES */}
+      {/* SECCIÓN EXPANDIBLE: INFORMACIÓN, FOTOS, TARIFAS, ICAL Y GUARDAR CAMBIOS */}
       {isDetailsExpanded && (
         <div
           style={{
             background: '#11100e',
             border: '1px solid rgba(201,169,124,0.28)',
             borderRadius: '0.6rem',
-            padding: '0.9rem',
+            padding: '0.95rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.75rem',
+            gap: '0.8rem',
           }}
         >
           <label style={{ fontSize: '0.75rem' }}>
@@ -2005,192 +2056,194 @@ const UnitConfigCard: React.FC<{
               ))}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Tarifas Rápidas */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.73rem' }}>
-          Dom–Jue ($)
-          <input
-            type="number"
-            value={weekdayRate}
-            onChange={(e) => setWeekdayRate(Number(e.target.value))}
+          {/* Tarifas, Limpieza y Mínimo de Noches */}
+          <div
             style={{
-              width: '100%',
-              marginTop: '0.25rem',
-              padding: '0.45rem',
-              background: '#11100e',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}
-          />
-        </label>
-        <label style={{ fontSize: '0.73rem' }}>
-          Vie–Sáb ($)
-          <input
-            type="number"
-            value={weekendRate}
-            onChange={(e) => setWeekendRate(Number(e.target.value))}
-            style={{
-              width: '100%',
-              marginTop: '0.25rem',
-              padding: '0.45rem',
-              background: '#11100e',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}
-          />
-        </label>
-        <label style={{ fontSize: '0.73rem' }}>
-          Limpieza ($)
-          <input
-            type="number"
-            value={cleaningFee}
-            onChange={(e) => setCleaningFee(Number(e.target.value))}
-            style={{
-              width: '100%',
-              marginTop: '0.25rem',
-              padding: '0.45rem',
-              background: '#11100e',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}
-          />
-        </label>
-        <label style={{ fontSize: '0.73rem' }}>
-          Mín. Noches
-          <input
-            type="number"
-            min={1}
-            value={minNights}
-            onChange={(e) => setMinNights(Number(e.target.value))}
-            style={{
-              width: '100%',
-              marginTop: '0.25rem',
-              padding: '0.45rem',
-              background: '#11100e',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}
-          />
-        </label>
-      </div>
-
-      {/* Enlace iCal de exportación */}
-      <div
-        style={{
-          fontSize: '0.76rem',
-          background: '#11100e',
-          padding: '0.75rem',
-          borderRadius: '0.45rem',
-          border: '1px solid rgba(201,169,124,0.25)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong style={{ color: '#c9a97c' }}>
-            1. Link iCal para pegar en Airbnb y Booking.com:
-          </strong>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard.writeText(exportUrl);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-            style={{
-              background: 'rgba(201,169,124,0.2)',
-              border: '1px solid #c9a97c',
-              color: '#f5f2eb',
-              fontSize: '0.7rem',
-              padding: '0.2rem 0.55rem',
-              borderRadius: '0.3rem',
-              cursor: 'pointer',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              paddingTop: '0.75rem',
             }}
           >
-            {copied ? '✓ Copiado' : 'Copiar Link'}
+            <span
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                color: '#c9a97c',
+                fontWeight: 600,
+                marginBottom: '0.45rem',
+              }}
+            >
+              Valores, Limpieza y Mínimo de Noches
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.73rem' }}>
+                Dom–Jue ($)
+                <input
+                  type="number"
+                  value={weekdayRate}
+                  onChange={(e) => setWeekdayRate(Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    padding: '0.45rem',
+                    background: '#1a1815',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                />
+              </label>
+              <label style={{ fontSize: '0.73rem' }}>
+                Vie–Sáb ($)
+                <input
+                  type="number"
+                  value={weekendRate}
+                  onChange={(e) => setWeekendRate(Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    padding: '0.45rem',
+                    background: '#1a1815',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                />
+              </label>
+              <label style={{ fontSize: '0.73rem' }}>
+                Limpieza ($)
+                <input
+                  type="number"
+                  value={cleaningFee}
+                  onChange={(e) => setCleaningFee(Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    padding: '0.45rem',
+                    background: '#1a1815',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                />
+              </label>
+              <label style={{ fontSize: '0.73rem' }}>
+                Mín. Noches
+                <input
+                  type="number"
+                  min={1}
+                  value={minNights}
+                  onChange={(e) => setMinNights(Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    padding: '0.45rem',
+                    background: '#1a1815',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Enlaces iCal */}
+          <div
+            style={{
+              fontSize: '0.76rem',
+              background: '#1a1815',
+              padding: '0.75rem',
+              borderRadius: '0.45rem',
+              border: '1px solid rgba(201,169,124,0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong style={{ color: '#c9a97c' }}>
+                1. Link iCal para pegar en Airbnb y Booking.com:
+              </strong>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(exportUrl);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                style={{
+                  background: 'rgba(201,169,124,0.2)',
+                  border: '1px solid #c9a97c',
+                  color: '#f5f2eb',
+                  fontSize: '0.7rem',
+                  padding: '0.2rem 0.55rem',
+                  borderRadius: '0.3rem',
+                  cursor: 'pointer',
+                }}
+              >
+                {copied ? '✓ Copiado' : 'Copiar Link'}
+              </button>
+            </div>
+            <div style={{ wordBreak: 'break-all', marginTop: '0.35rem', color: '#d5d0c5' }}>
+              {exportUrl}
+            </div>
+          </div>
+
+          <label style={{ fontSize: '0.75rem' }}>
+            2. URL iCal exportada de Airbnb (Pegar aquí el link .ics que te da Airbnb)
+            <input
+              type="url"
+              placeholder="https://www.airbnb.com/calendar/ical/12345678.ics?s=..."
+              value={airbnbIcalUrl}
+              onChange={(e) => setAirbnbIcalUrl(e.target.value)}
+              style={{
+                width: '100%',
+                marginTop: '0.25rem',
+                padding: '0.5rem',
+                background: '#1a1815',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+            />
+          </label>
+
+          <label style={{ fontSize: '0.75rem' }}>
+            3. URL iCal exportada de Booking.com (Pegar aquí el link .ics que te da Booking)
+            <input
+              type="url"
+              placeholder="https://ical.booking.com/v1/export?t=..."
+              value={bookingIcalUrl}
+              onChange={(e) => setBookingIcalUrl(e.target.value)}
+              style={{
+                width: '100%',
+                marginTop: '0.25rem',
+                padding: '0.5rem',
+                background: '#1a1815',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+            />
+          </label>
+
+          {unit.lastIcalSyncAt && (
+            <small style={{ color: '#9e988e', fontSize: '0.72rem' }}>
+              Última sincronización: {new Date(unit.lastIcalSyncAt).toLocaleString()}
+            </small>
+          )}
+
+          <button
+            type="button"
+            disabled={isSavingUnit}
+            onClick={() => void handleSaveAndClose()}
+            style={{
+              padding: '0.65rem',
+              background: '#c9a97c',
+              color: '#11100e',
+              border: 'none',
+              borderRadius: '0.4rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginTop: '0.25rem',
+            }}
+          >
+            {isSavingUnit ? 'Guardando...' : '✓ Guardar Cambios de Suite'}
           </button>
         </div>
-        <div style={{ wordBreak: 'break-all', marginTop: '0.35rem', color: '#d5d0c5' }}>
-          {exportUrl}
-        </div>
-      </div>
-
-      <label style={{ fontSize: '0.75rem' }}>
-        2. URL iCal exportada de Airbnb (Pegar aquí el link .ics que te da Airbnb)
-        <input
-          type="url"
-          placeholder="https://www.airbnb.com/calendar/ical/12345678.ics?s=..."
-          value={airbnbIcalUrl}
-          onChange={(e) => setAirbnbIcalUrl(e.target.value)}
-          style={{
-            width: '100%',
-            marginTop: '0.25rem',
-            padding: '0.5rem',
-            background: '#11100e',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        />
-      </label>
-
-      <label style={{ fontSize: '0.75rem' }}>
-        3. URL iCal exportada de Booking.com (Pegar aquí el link .ics que te da Booking)
-        <input
-          type="url"
-          placeholder="https://ical.booking.com/v1/export?t=..."
-          value={bookingIcalUrl}
-          onChange={(e) => setBookingIcalUrl(e.target.value)}
-          style={{
-            width: '100%',
-            marginTop: '0.25rem',
-            padding: '0.5rem',
-            background: '#11100e',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        />
-      </label>
-
-      {unit.lastIcalSyncAt && (
-        <small style={{ color: '#9e988e', fontSize: '0.72rem' }}>
-          Última sincronización: {new Date(unit.lastIcalSyncAt).toLocaleString()}
-        </small>
       )}
-
-      <button
-        type="button"
-        onClick={() =>
-          onSave({
-            name,
-            unitNumber,
-            tagline,
-            bedsLabel,
-            capacityLabel,
-            maxGuests,
-            description,
-            coverImage: galleryImages[0] || unit.coverImage || '/images/apt-612/apt612-4.jpg',
-            galleryImages,
-            weekdayRate,
-            weekendRate,
-            cleaningFee,
-            minNights,
-            airbnbIcalUrl,
-            bookingIcalUrl,
-          })
-        }
-        style={{
-          padding: '0.6rem',
-          background: '#c9a97c',
-          color: '#11100e',
-          border: 'none',
-          borderRadius: '0.4rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        Guardar Cambios de Suite
-      </button>
     </div>
   );
 };
