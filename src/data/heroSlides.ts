@@ -353,7 +353,7 @@ export interface ReviewItem {
 export const REVIEW_ITEMS: ReviewItem[] = [
   {
     id: 'rev-1',
-    indexLabel: '01 / 03',
+    indexLabel: '01 / 06',
     quote: {
       en: '“Departamento 612 at Makana Resort — Tonsupa was spotless and truly full equipped. Having two comfortable 2-plaza beds, a living-dining area, equipped kitchen, and ocean-view balcony made our family stay effortless.”',
       es: '“El Departamento 612 en Makana Resort — Tonsupa estaba impecable y verdaderamente full equipado. Tener 2 camas de 2 plazas, área de sala-comedor, cocina equipada y balcón con vista al mar hizo nuestra estadía perfecta.”',
@@ -376,7 +376,7 @@ export const REVIEW_ITEMS: ReviewItem[] = [
   },
   {
     id: 'rev-2',
-    indexLabel: '02 / 03',
+    indexLabel: '02 / 06',
     quote: {
       en: '“We booked Suite 311 (3rd floor, 49 m²) directly and loved every detail. Two 2-plaza beds, sofa bed, fast Wi-Fi, A/C, equipped kitchen, and the balcony overlooking the beach at Makana Resort.”',
       es: '“Reservamos la Suite 311 (tercer piso, 49 m²) directamente y nos encantó cada detalle. Dos camas de 2 plazas, sofá cama, Wi-Fi rápido, aire acondicionado, cocina equipada y balcón con vista al mar en Makana Resort.”',
@@ -399,7 +399,7 @@ export const REVIEW_ITEMS: ReviewItem[] = [
   },
   {
     id: 'rev-3',
-    indexLabel: '03 / 03',
+    indexLabel: '03 / 06',
     quote: {
       en: '“Makana Resort is the best beachfront resort in Tonsupa. Between the swimming pools, jacuzzi, gym, restaurant, and 24/7 security, reserving both Departamento 612 and Suite 311 was a 10/10 experience.”',
       es: '“Makana Resort es el mejor resort en primera línea de playa de Tonsupa. Entre el complejo de piscinas, jacuzzi, gimnasio, restaurante y seguridad 24/7, reservar el Departamento 612 y la Suite 311 fue un 10/10.”',
@@ -416,6 +416,75 @@ export const REVIEW_ITEMS: ReviewItem[] = [
     stayDate: {
       en: 'AUGUST 2026',
       es: 'AGOSTO 2026',
+    },
+    rating: '5.0 / 5.0',
+    slideIndex: 0,
+  },
+  {
+    id: 'rev-4',
+    indexLabel: '04 / 06',
+    quote: {
+      en: '“Beautiful place, a spectacular, comfortable suite with excellent facilities, 100% recommended.. 😄 It is great and wonderful, without forgetting that its oceanfront pool is incredible.. for a spectacular view and sunset.”',
+      es: '“Hermoso lugar, una suite espectacular, confortable y excelentes instalaciones, 100% recomendado.. 😄 es genial y maravilloso, sin olvidar que su piscina al filo del mar es increíble.. para una vista y atardecer espectaculares.”',
+    },
+    guestName: 'EDISON ANDRADE',
+    guestTitle: {
+      en: 'VERIFIED GOOGLE REVIEW · 12 REVIEWS',
+      es: 'RESEÑA VERIFICADA DE GOOGLE · 12 RESEÑAS',
+    },
+    staySuite: {
+      en: 'Rooms 5/5 · Service 5/5 · Location 5/5',
+      es: 'Habitaciones 5/5 · Servicio 5/5 · Ubicación 5/5',
+    },
+    stayDate: {
+      en: '3 YEARS AGO',
+      es: 'HACE 3 AÑOS',
+    },
+    rating: '5.0 / 5.0',
+    slideIndex: 1,
+  },
+  {
+    id: 'rev-5',
+    indexLabel: '05 / 06',
+    quote: {
+      en: '“It is an excellent choice for vacations. The atmosphere is great and the facilities are luxurious. For price and value, I recommend it. Best regards.”',
+      es: '“Es una excelente elección para vacaciones. El ambiente es genial y las instalaciones de lujo. Por precio y beneficio, lo recomiendo. Saludos.”',
+    },
+    guestName: 'FRANKLIN ERAZO SIERRA',
+    guestTitle: {
+      en: 'VERIFIED GOOGLE REVIEW',
+      es: 'RESEÑA VERIFICADA DE GOOGLE',
+    },
+    staySuite: {
+      en: 'Makana Resort Tonsupa · Luxury Facilities',
+      es: 'Makana Resort Tonsupa · Instalaciones de Lujo',
+    },
+    stayDate: {
+      en: '5 YEARS AGO',
+      es: 'HACE 5 AÑOS',
+    },
+    rating: '5.0 / 5.0',
+    slideIndex: 2,
+  },
+  {
+    id: 'rev-6',
+    indexLabel: '06 / 06',
+    quote: {
+      en: '“A super cozy place, like being at home, I would come back a thousand times 💗”',
+      es: '“Un lugar súper acogedor, como estar en casa, volvería mil veces 💗”',
+    },
+    guestName: 'RICARDO GUAYGUA',
+    guestTitle: {
+      en: 'VERIFIED GOOGLE REVIEW · FAMILY VACATION',
+      es: 'RESEÑA VERIFICADA DE GOOGLE · VACACIONES EN FAMILIA',
+    },
+    staySuite: {
+      en: 'Rooms 5/5 · Service 5/5 · Location 5/5',
+      es: 'Habitaciones 5/5 · Servicio 5/5 · Ubicación 5/5',
+    },
+    stayDate: {
+      en: '1 YEAR AGO',
+      es: 'HACE 1 AÑO',
     },
     rating: '5.0 / 5.0',
     slideIndex: 0,
