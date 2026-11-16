@@ -293,7 +293,12 @@ export const App: React.FC = () => {
         />
 
         {/* UNIFIED SCROLL SHELL INSIDE FIXED ARTIFICIAL WINDOW */}
-        <div ref={scrollShellRef} className="unified-scroll-shell scroll-enabled-home">
+        <div
+          ref={scrollShellRef}
+          className={`unified-scroll-shell ${
+            isHome || isSuites ? 'scroll-enabled-home' : 'scroll-locked-suites'
+          }`}
+        >
           {/* PERSISTENT CHOREOGRAPHED STAGE */}
           <main
             className={`choreographed-stage stage-${activeNav.toLowerCase()}`}
@@ -659,13 +664,15 @@ export const App: React.FC = () => {
             </aside>
           </main>
 
-          {/* 2ND SECTION: Editorial About Section (Preserves vertical scroll across all pages) */}
-          <AboutSection
-            variant={isHome ? 'home' : 'suites'}
-            lang={lang}
-            units={liveUnits}
-            onExploreSuites={isHome ? () => handleSelectNav('SUITES') : handleOpenBooking}
-          />
+          {/* 2ND SECTION: Editorial About Section (Only in HOME and SUITES, removed from GALLERY) */}
+          {(isHome || isSuites) && (
+            <AboutSection
+              variant={isHome ? 'home' : 'suites'}
+              lang={lang}
+              units={liveUnits}
+              onExploreSuites={isHome ? () => handleSelectNav('SUITES') : handleOpenBooking}
+            />
+          )}
         </div>
 
         {/* CAPSULE SCROLLBAR INDICATOR (Smooth vertical tracking across all sections) */}
