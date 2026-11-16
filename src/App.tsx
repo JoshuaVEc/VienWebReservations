@@ -80,18 +80,8 @@ export const App: React.FC = () => {
   }, [lang, activeNav]);
 
   useEffect(() => {
-    let hasSeenIntro = false;
-    try {
-      hasSeenIntro =
-        typeof window !== 'undefined' &&
-        typeof window.sessionStorage !== 'undefined' &&
-        window.sessionStorage.getItem('vien_intro_seen') === '1';
-    } catch {
-      hasSeenIntro = false;
-    }
-
     const startTime = performance.now();
-    const totalDuration = hasSeenIntro ? 700 : 1500;
+    const totalDuration = 2400;
     let rafId = 0;
 
     const tick = (now: number) => {
@@ -114,13 +104,6 @@ export const App: React.FC = () => {
 
     rafId = requestAnimationFrame(tick);
     const doneTimer = window.setTimeout(() => {
-      try {
-        if (typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined') {
-          window.sessionStorage.setItem('vien_intro_seen', '1');
-        }
-      } catch {
-        // Ignore storage restrictions
-      }
       setIsIntroLoading(false);
     }, totalDuration);
 
@@ -472,10 +455,7 @@ export const App: React.FC = () => {
                   })}
                 </div>
 
-                <div
-                  key={`suites-heading-${currentSlide.id}`}
-                  className="suites-heading-block slide-meta-animated"
-                >
+                <div className="suites-heading-block">
                   <h2 className="suites-main-title suites-choreo-item suites-choreo-title">
                     <span>{currentSlide.titleLine1[lang]}</span>
                     <span>{currentSlide.titleLine2[lang]}</span>
@@ -694,8 +674,7 @@ export const App: React.FC = () => {
 
               <div className="preview-card-footer">
                 <div
-                  key={`preview-meta-${currentSlide.id}`}
-                  className="preview-meta slide-meta-animated"
+                  className="preview-meta"
                   onClick={() => {
                     if (isHome) handleSelectNav('SUITES');
                   }}

@@ -256,6 +256,7 @@ body {
   background: linear-gradient(90deg, rgba(135, 114, 93, 0.4), #c9a97c);
   transform: scaleX(0);
   transform-origin: left center;
+  transition: transform 0.12s linear;
 }
 
 .intro-counter {
@@ -301,9 +302,9 @@ body {
   position: relative;
   z-index: 20;
   transition:
-    padding 0.65s var(--ease-out-expo),
-    opacity 0.65s var(--ease-out-expo) 0.08s,
-    transform 0.65s var(--ease-out-expo) 0.08s;
+    padding 0.9s var(--luxury-ease),
+    opacity 0.95s var(--silky-ease) 0.15s,
+    transform 0.95s var(--silky-ease) 0.15s;
 }
 
 .brand-monogram {
@@ -344,7 +345,7 @@ body {
   display: flex;
   align-items: center;
   gap: clamp(0.35rem, 0.8vw, 0.65rem);
-  transition: transform 0.95s var(--ease-out-expo);
+  transition: transform 2.6s var(--cinema-ease);
 }
 
 .lumiere-viewport.mode-suites .lumiere-header .nav-pills {
@@ -586,10 +587,10 @@ body {
   clip-path: inset(0% 0% 0% 0% round 1.5rem);
   opacity: 1;
   transition:
-    clip-path 1.15s var(--ease-out-expo),
-    transform 1.15s var(--ease-out-expo),
-    opacity 0.85s var(--silky-ease);
-  will-change: clip-path, transform;
+    clip-path 2.8s var(--cinema-ease),
+    transform 2.8s var(--cinema-ease),
+    opacity 2.2s var(--cinema-ease);
+  will-change: clip-path, transform, opacity;
 }
 
 /* SUITES: Smoothly crops into the Right Portrait Frame (44.5% width) without layout thrashing */
@@ -624,16 +625,16 @@ body {
   opacity: 0;
   transform: scale(1.07) translate3d(0, 0, 0);
   transition:
-    opacity 0.85s var(--silky-ease),
-    transform 1.25s var(--ease-out-expo);
+    opacity 1.6s var(--silky-ease),
+    transform 2.8s var(--cinema-ease);
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .shared-media-img.is-active-slide {
   opacity: 1;
   transform: scale(1.01) translate3d(0, 0, 0);
   z-index: 2;
-  will-change: transform, opacity;
 }
 
 /* Slight pan to the right when in SUITES so the subject stays centered inside the right portrait */
@@ -718,20 +719,21 @@ body {
   width: fit-content;
   opacity: 0;
   transform: translate3d(0, -115%, 0);
+  will-change: transform, opacity;
   transition:
-    opacity 0.55s var(--cinema-ease),
-    transform 0.65s var(--cinema-ease);
-  transition-delay: calc(var(--line-idx, 0) * 0.05s);
+    opacity 1.6s var(--cinema-ease),
+    transform 1.9s var(--cinema-ease);
+  transition-delay: calc(var(--line-idx, 0) * 0.1s);
 }
 
-/* Entering HOME: Each syllable falls gracefully into place from above! */
+/* Entering HOME: Each syllable (LU -> MIÈ -> RE) falls gracefully into place from above! */
 .choreographed-stage.stage-home .monumental-line {
   opacity: 1;
   transform: translate3d(0, 0%, 0);
   transition:
-    opacity 0.9s var(--ease-out-expo),
-    transform 1.05s var(--ease-out-expo);
-  transition-delay: calc(0.18s + (var(--line-idx, 0) * 0.12s));
+    opacity 1.9s var(--silky-ease),
+    transform 2.4s var(--silky-ease);
+  transition-delay: calc(0.55s + (var(--line-idx, 0) * 0.24s));
 }
 
 /* ==========================================================================
@@ -769,44 +771,45 @@ body {
 
 .suites-choreo-item {
   opacity: 0;
-  transform: translate3d(-40px, 14px, 0) scale(0.97);
+  transform: translate3d(-64px, 18px, 0) scale(0.97);
+  will-change: transform, opacity;
   transition:
-    opacity 0.45s var(--cinema-ease),
-    transform 0.55s var(--cinema-ease);
-  transition-delay: 0.02s;
+    opacity 1.65s var(--cinema-ease),
+    transform 2.1s var(--cinema-ease);
+  transition-delay: 0.05s;
 }
 
 .suites-choreo-thumb {
-  transform: translate3d(-32px, 18px, 0) scale(0.94);
-  transition-delay: calc((2 - var(--stagger-index, 0)) * 0.04s);
+  transform: translate3d(-44px, 24px, 0) scale(0.92);
+  transition-delay: calc((2 - var(--stagger-index, 0)) * 0.1s);
 }
 
 .choreographed-stage.stage-suites .suites-choreo-item {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   transition:
-    opacity 0.85s var(--ease-out-expo),
-    transform 0.95s var(--ease-out-expo);
+    opacity 2.1s var(--silky-ease),
+    transform 2.45s var(--silky-ease);
 }
 
 .choreographed-stage.stage-suites .suites-choreo-thumb {
-  transition-delay: calc(0.16s + (var(--stagger-index, 0) * 0.08s));
+  transition-delay: calc(0.65s + (var(--stagger-index, 0) * 0.22s));
 }
 
 .choreographed-stage.stage-suites .suites-choreo-title {
-  transition-delay: 0.32s;
+  transition-delay: 1.15s;
 }
 
 .choreographed-stage.stage-suites .suites-choreo-subtitle {
-  transition-delay: 0.42s;
+  transition-delay: 1.38s;
 }
 
 .choreographed-stage.stage-suites .suites-choreo-cta {
-  transition-delay: 0.5s;
+  transition-delay: 1.62s;
 }
 
 .choreographed-stage.stage-suites .suites-choreo-scroll {
-  transition-delay: 0.58s;
+  transition-delay: 1.85s;
 }
 
 .suites-triptych {
@@ -933,20 +936,21 @@ body {
 
 .gallery-choreo-item {
   opacity: 0;
-  transform: translate3d(0, 28px, 0) scale(0.97);
+  transform: translate3d(0, 42px, 0) scale(0.96);
+  will-change: transform, opacity;
   transition:
-    opacity 0.45s var(--cinema-ease),
-    transform 0.55s var(--cinema-ease);
-  transition-delay: calc((6 - var(--gal-idx, 0)) * 0.02s);
+    opacity 1.5s var(--cinema-ease),
+    transform 1.85s var(--cinema-ease);
+  transition-delay: calc((6 - var(--gal-idx, 0)) * 0.05s);
 }
 
 .choreographed-stage.stage-gallery .gallery-choreo-item {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   transition:
-    opacity 0.8s var(--ease-out-expo),
-    transform 0.9s var(--ease-out-expo);
-  transition-delay: calc(0.12s + (var(--gal-idx, 0) * 0.06s));
+    opacity 1.95s var(--silky-ease),
+    transform 2.35s var(--silky-ease);
+  transition-delay: calc(0.45s + (var(--gal-idx, 0) * 0.16s));
 }
 
 .gallery-top-header {
@@ -1119,20 +1123,21 @@ body {
 
 .reviews-choreo-item {
   opacity: 0;
-  transform: translate3d(40px, 12px, 0) scale(0.97);
+  transform: translate3d(68px, 16px, 0) scale(0.97);
+  will-change: transform, opacity;
   transition:
-    opacity 0.45s var(--cinema-ease),
-    transform 0.55s var(--cinema-ease);
-  transition-delay: calc((4 - var(--rev-idx, 0)) * 0.03s);
+    opacity 1.65s var(--cinema-ease),
+    transform 2.1s var(--cinema-ease);
+  transition-delay: calc((4 - var(--rev-idx, 0)) * 0.06s);
 }
 
 .choreographed-stage.stage-reviews .reviews-choreo-item {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   transition:
-    opacity 0.85s var(--ease-out-expo),
-    transform 0.95s var(--ease-out-expo);
-  transition-delay: calc(0.16s + (var(--rev-idx, 0) * 0.08s));
+    opacity 2.1s var(--silky-ease),
+    transform 2.45s var(--silky-ease);
+  transition-delay: calc(0.65s + (var(--rev-idx, 0) * 0.22s));
 }
 
 .reviews-eyebrow-row {
@@ -1289,16 +1294,16 @@ body {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   transition:
-    width 0.95s var(--ease-out-expo),
-    right 0.95s var(--ease-out-expo),
-    bottom 0.95s var(--ease-out-expo),
-    padding 0.95s var(--ease-out-expo),
-    opacity 0.65s var(--silky-ease),
-    transform 0.95s var(--ease-out-expo),
-    background-color 0.65s var(--silky-ease),
-    border-color 0.65s var(--silky-ease),
-    box-shadow 0.65s var(--silky-ease),
-    backdrop-filter 0.65s var(--silky-ease);
+    width 2.8s var(--cinema-ease),
+    right 2.8s var(--cinema-ease),
+    bottom 2.8s var(--cinema-ease),
+    padding 2.8s var(--cinema-ease),
+    opacity 1.8s var(--cinema-ease),
+    transform 2.4s var(--cinema-ease),
+    background-color 2.2s var(--cinema-ease),
+    border-color 2.2s var(--cinema-ease),
+    box-shadow 2.2s var(--cinema-ease),
+    backdrop-filter 2.2s var(--cinema-ease);
 }
 
 .choreographed-stage.stage-suites .shared-bottom-right-dock {
@@ -1337,23 +1342,23 @@ body {
   transform: translate3d(0, 0, 0) scale(1);
   margin-bottom: clamp(0.85rem, 1.3vw, 1.15rem);
   transition:
-    grid-template-rows 0.75s var(--ease-out-expo),
-    opacity 0.65s var(--silky-ease) 0.08s,
-    transform 0.75s var(--ease-out-expo),
-    margin-bottom 0.75s var(--ease-out-expo);
+    grid-template-rows 2.4s var(--cinema-ease),
+    opacity 1.9s var(--cinema-ease) 0.25s,
+    transform 2.4s var(--cinema-ease),
+    margin-bottom 2.4s var(--cinema-ease);
 }
 
 .choreographed-stage:not(.stage-home) .preview-thumb-collapsible {
   grid-template-rows: 0fr;
   opacity: 0;
-  transform: translate3d(0, 16px, 0) scale(0.95);
+  transform: translate3d(0, 22px, 0) scale(0.93);
   margin-bottom: 0;
   pointer-events: none;
   transition:
-    grid-template-rows 0.65s var(--ease-out-expo),
-    opacity 0.45s var(--cinema-ease),
-    transform 0.65s var(--ease-out-expo),
-    margin-bottom 0.65s var(--ease-out-expo);
+    grid-template-rows 2.2s var(--cinema-ease),
+    opacity 1.4s var(--cinema-ease),
+    transform 2.2s var(--cinema-ease),
+    margin-bottom 2.2s var(--cinema-ease);
 }
 
 .preview-thumb-button {
@@ -3019,43 +3024,28 @@ dialog::backdrop {
 }
 
 /* ==========================================================================
-   SLIDE META MICRO-TRANSITIONS & SCROLL-DRIVEN CHOREOGRAPHY
+   SCROLL-DRIVEN EDITORIAL REVEAL
    ========================================================================== */
-@keyframes slide-meta-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.slide-meta-animated {
-  animation: slide-meta-enter 0.55s var(--ease-out-expo) both;
-}
-
 .scroll-reveal-item {
   transition:
-    opacity 0.85s var(--ease-out-expo),
-    transform 0.95s var(--ease-out-expo);
-  transition-delay: calc(var(--reveal-idx, 0) * 0.08s);
+    opacity 1.6s var(--silky-ease),
+    transform 1.95s var(--silky-ease);
+  transition-delay: calc(var(--reveal-idx, 0) * 0.12s);
 }
 
 .unified-scroll-shell.has-scroll-observer .scroll-reveal-item:not(.is-in-view) {
   opacity: 0;
-  transform: translate3d(0, 32px, 0);
+  transform: translate3d(0, 24px, 0);
 }
 
 .unified-scroll-shell.has-scroll-observer .scroll-reveal-item.scroll-reveal-scale:not(.is-in-view) {
   opacity: 0;
-  transform: translate3d(0, 36px, 0) scale(0.95);
+  transform: translate3d(0, 28px, 0) scale(0.96);
 }
 
 .unified-scroll-shell.has-scroll-observer .scroll-reveal-item.scroll-reveal-float:not(.is-in-view) {
   opacity: 0;
-  transform: translate3d(-18px, 44px, 0) scale(0.96);
+  transform: translate3d(-14px, 32px, 0) scale(0.97);
 }
 
 .unified-scroll-shell.has-scroll-observer .scroll-reveal-item.is-in-view {
@@ -3065,26 +3055,6 @@ dialog::backdrop {
 
 @media (prefers-reduced-motion: no-preference) {
   @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-    @keyframes hero-scroll-depth {
-      from {
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-      to {
-        transform: translate3d(0, -4%, 0) scale(1.06);
-      }
-    }
-
-    @keyframes hero-monumental-scroll-out {
-      from {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        opacity: 0.15;
-        transform: translate3d(0, -14%, 0);
-      }
-    }
-
     @keyframes scroll-indicator-fade {
       from {
         opacity: 1;
@@ -3096,18 +3066,6 @@ dialog::backdrop {
       }
     }
 
-    .unified-scroll-shell.scroll-enabled-home .choreographed-stage .shared-media-card {
-      animation: hero-scroll-depth linear both;
-      animation-timeline: --vien-shell-scroll;
-      animation-range: 0% 90%;
-    }
-
-    .unified-scroll-shell.scroll-enabled-home .choreographed-stage.stage-home .home-monumental-layer {
-      animation: hero-monumental-scroll-out linear both;
-      animation-timeline: --vien-shell-scroll;
-      animation-range: 0% 65%;
-    }
-
     .unified-scroll-shell.scroll-enabled-home .suites-scroll-indicator {
       animation: scroll-indicator-fade linear both;
       animation-timeline: --vien-shell-scroll;
@@ -3116,28 +3074,13 @@ dialog::backdrop {
   }
 
   @supports ((animation-timeline: view()) and (animation-range: entry)) {
-    @keyframes about-arch-parallax {
-      from {
-        transform: translate3d(0, -4%, 0) scale(1.06);
-      }
-      to {
-        transform: translate3d(0, 4%, 0) scale(1.06);
-      }
-    }
-
     @keyframes about-float-parallax {
       from {
-        translate: 0 18px;
+        translate: 0 14px;
       }
       to {
-        translate: 0 -18px;
+        translate: 0 -14px;
       }
-    }
-
-    .about-arch-frame .about-main-img {
-      animation: about-arch-parallax linear both;
-      animation-timeline: view(block);
-      animation-range: entry 0% exit 100%;
     }
 
     .about-floating-card {
@@ -3154,10 +3097,6 @@ dialog::backdrop {
   }
 
   .intro-arch-emblem {
-    animation: none;
-  }
-
-  .slide-meta-animated {
     animation: none;
   }
 
@@ -3191,7 +3130,6 @@ dialog::backdrop {
     transform: none;
   }
 
-  .about-arch-frame .about-main-img,
   .about-floating-card {
     animation: none !important;
     translate: 0 0;
