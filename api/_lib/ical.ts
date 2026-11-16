@@ -180,6 +180,7 @@ export async function syncExternalCalendarsIfNeeded(force = false): Promise<{
       try {
         const res = await fetch(src.url.trim(), {
           headers: { 'User-Agent': 'VienVacationHome-iCalSync/1.0' },
+          signal: typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(4500) : undefined,
         });
         if (!res.ok) {
           errors.push(`${unit.id} (${src.source}): HTTP ${res.status}`);

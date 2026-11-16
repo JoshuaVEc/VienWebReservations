@@ -169,6 +169,10 @@ assert.ok(
   homeAboutHtml.includes('QUIÉNES SOMOS · VIEN VACATION HOME'),
   'La variante home debe mostrar el encabezado QUIÉNES SOMOS'
 );
+assert.ok(
+  homeAboutHtml.includes('scroll-reveal-item') && homeAboutHtml.includes('data-scroll-reveal'),
+  'AboutSection debe incluir atributos y clases de revelado al hacer scroll (scroll-reveal-item / data-scroll-reveal)'
+);
 const homeAboutButtons = collectElements(homeAboutTree, (el) => el.type === 'button');
 assert.equal(homeAboutButtons.length, 1);
 homeAboutButtons[0].props.onClick();
@@ -471,7 +475,11 @@ assert.ok(
   cssText.includes('transform 0.28s var(--silky-ease)'),
   'El thumb .vien-capsule-thumb debe tener la transición smooth con var(--silky-ease)'
 );
-console.log('   ✓ Reglas CSS de la scrollbar verificadas.');
+assert.ok(
+  cssText.includes('--ease-out-expo') && cssText.includes('@media (prefers-reduced-motion: reduce)'),
+  'index.css debe incluir el token --ease-out-expo y reglas de prefers-reduced-motion: reduce'
+);
+console.log('   ✓ Reglas CSS de la scrollbar, transiciones y accesibilidad verificadas.');
 
 console.log('6. Probando renderizado y botones del modal <BookingDialog />...');
 let dialogClosed = 0;

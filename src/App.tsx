@@ -59,6 +59,7 @@ export const App: React.FC = () => {
   const progressCounterRef = useRef<HTMLSpanElement>(null);
   const capsuleTrackRef = useRef<HTMLDivElement>(null);
   const capsuleThumbRef = useRef<HTMLDivElement>(null);
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const t = UI_TEXT[lang];
   const safeActiveIndex = activeIndex < heroSlides.length ? activeIndex : 0;
@@ -79,8 +80,18 @@ export const App: React.FC = () => {
   }, [lang, activeNav]);
 
   useEffect(() => {
+    let hasSeenIntro = false;
+    try {
+      hasSeenIntro =
+        typeof window !== 'undefined' &&
+        typeof window.sessionStorage !== 'undefined' &&
+        window.sessionStorage.getItem('vien_intro_seen') === '1';
+    } catch {
+      hasSeenIntro = false;
+    }
+
     const startTime = performance.now();
-    const totalDuration = 2400;
+    const totalDuration = hasSeenIntro ? 700 : 1500;
     let rafId = 0;
 
     const tick = (now: number) => {
@@ -103,8 +114,15 @@ export const App: React.FC = () => {
 
     rafId = requestAnimationFrame(tick);
     const doneTimer = window.setTimeout(() => {
+      try {
+        if (typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined') {
+          window.sessionStorage.setItem('vien_intro_seen', '1');
+        }
+      } catch {
+        // Ignore storage restrictions
+      }
       setIsIntroLoading(false);
-    }, 2400);
+    }, totalDuration);
 
     return () => {
       cancelAnimationFrame(rafId);
@@ -193,6 +211,42 @@ export const App: React.FC = () => {
       window.removeEventListener('resize', syncCapsuleThumb);
     };
   }, [syncCapsuleThumb, activeNav]);
+
+  // Reveal editorial sections and metrics smoothly as the user scrolls down
+  useEffect(() => {
+    const shell = scrollShellRef.current;
+    if (!shell || typeof shell.querySelectorAll !== 'function') return;
+    const revealNodes = Array.from(shell.querySelectorAll<HTMLElement>('[data-scroll-reveal]'));
+    if (revealNodes.length === 0) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      revealNodes.forEach((node) => node.classList.add('is-in-view'));
+      return;
+    }
+
+    shell.classList?.add('has-scroll-observer');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in-view');
+          } else if (entry.boundingClientRect.top > 0) {
+            entry.target.classList.remove('is-in-view');
+          }
+        }
+      },
+      {
+        root: shell,
+        threshold: 0.14,
+        rootMargin: '0px 0px -6% 0px',
+      }
+    );
+
+    revealNodes.forEach((node) => observer.observe(node));
+    return () => {
+      observer.disconnect();
+    };
+  }, [activeNav, lang, liveUnits]);
 
   const scrollToTrackEvent = useCallback(
     (clientY: number, behavior: ScrollBehavior) => {
@@ -318,11 +372,30 @@ export const App: React.FC = () => {
           <main
             className={`choreographed-stage stage-${activeNav.toLowerCase()}`}
             aria-label="Vien Vacation Home Showcase"
+            onPointerDown={(e) => {
+              if (isGallery || e.button !== 0) return;
+              swipeStartRef.current = { x: e.clientX, y: e.clientY };
+            }}
+            onPointerUp={(e) => {
+              const start = swipeStartRef.current;
+              swipeStartRef.current = null;
+              if (!start || isGallery) return;
+              const dx = e.clientX - start.x;
+              const dy = e.clientY - start.y;
+              if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                if (dx < 0) {
+                  handleNext();
+                } else {
+                  handlePrev();
+                }
+              }
+            }}
           >
             {/* 1. SHARED MEDIA CANVAS */}
             <div className="shared-media-card">
               {heroSlides.map((slide, idx) => {
                 const isActive = idx === safeActiveIndex;
+                const isNextPreview = idx === nextSlideIndex;
                 return (
                   <img
                     key={slide.id}
@@ -331,6 +404,7 @@ export const App: React.FC = () => {
                     className={`shared-media-img ${
                       isActive ? 'is-active-slide' : 'is-hidden-slide'
                     }`}
+                    loading={isActive || isNextPreview ? 'eager' : 'lazy'}
                     fetchPriority={isActive ? 'high' : 'low'}
                     decoding={isActive ? 'sync' : 'async'}
                     width="1920"
@@ -398,7 +472,10 @@ export const App: React.FC = () => {
                   })}
                 </div>
 
-                <div className="suites-heading-block">
+                <div
+                  key={`suites-heading-${currentSlide.id}`}
+                  className="suites-heading-block slide-meta-animated"
+                >
                   <h2 className="suites-main-title suites-choreo-item suites-choreo-title">
                     <span>{currentSlide.titleLine1[lang]}</span>
                     <span>{currentSlide.titleLine2[lang]}</span>
@@ -617,7 +694,8 @@ export const App: React.FC = () => {
 
               <div className="preview-card-footer">
                 <div
-                  className="preview-meta"
+                  key={`preview-meta-${currentSlide.id}`}
+                  className="preview-meta slide-meta-animated"
                   onClick={() => {
                     if (isHome) handleSelectNav('SUITES');
                   }}

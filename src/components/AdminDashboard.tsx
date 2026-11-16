@@ -1755,7 +1755,7 @@ const UnitConfigCard: React.FC<{
   exportUrl: string;
   onSave: (patch: Partial<AdminUnit>) => Promise<boolean> | void;
   onDelete: () => void;
-}> = ({ unit, exportUrl, onSave, onDelete }) => {
+}> = React.memo(({ unit, exportUrl, onSave, onDelete }) => {
   const [name, setName] = useState(unit.name);
   const [unitNumber, setUnitNumber] = useState(unit.unitNumber || '');
   const [tagline, setTagline] = useState(unit.tagline || 'FULL EQUIPADA · VISTA AL MAR');
@@ -2382,7 +2382,8 @@ const UnitConfigCard: React.FC<{
       )}
     </div>
   );
-};
+});
+UnitConfigCard.displayName = 'UnitConfigCard';
 
 /* ==========================================================================
    CALENDARIO VISUAL DINÁMICO DE DISPONIBILIDAD Y OCUPACIÓN POR SUITE
@@ -2505,7 +2506,7 @@ const AdminAvailabilityCalendar: React.FC<{
     status: 'CONFIRMED' | 'CANCELLED',
     bookingCode: string
   ) => void;
-}> = ({
+}> = React.memo(({
   units,
   seasonalRates,
   bookings,
@@ -3578,4 +3579,5 @@ const AdminAvailabilityCalendar: React.FC<{
       </div>
     </section>
   );
-};
+});
+AdminAvailabilityCalendar.displayName = 'AdminAvailabilityCalendar';

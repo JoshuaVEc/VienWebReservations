@@ -223,35 +223,72 @@ export const AboutSection: React.FC<AboutSectionProps> = memo(
         <div className="about-grid">
           {/* Left Editorial Story Column */}
           <div className="about-story-col">
-            <div className="about-eyebrow-row">
+            <div
+              className="about-eyebrow-row scroll-reveal-item"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 0 } as React.CSSProperties}
+            >
               <span className="about-index">01 /</span>
               <span className="about-eyebrow">{copy.eyebrow}</span>
             </div>
 
-            <h2 id={headingId} className="about-title">
+            <h2
+              id={headingId}
+              className="about-title scroll-reveal-item"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 1 } as React.CSSProperties}
+            >
               {copy.title}
             </h2>
 
-            <p className="about-lead">{copy.lead}</p>
+            <p
+              className="about-lead scroll-reveal-item"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 2 } as React.CSSProperties}
+            >
+              {copy.lead}
+            </p>
 
-            <p className="about-body">{copy.body}</p>
+            <p
+              className="about-body scroll-reveal-item"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 3 } as React.CSSProperties}
+            >
+              {copy.body}
+            </p>
 
             <ul className="about-stats" role="list" aria-label="Vien Vacation Home Highlights">
-              <li className="about-stat-item">
+              <li
+                className="about-stat-item scroll-reveal-item"
+                data-scroll-reveal=""
+                style={{ '--reveal-idx': 4 } as React.CSSProperties}
+              >
                 <span className="stat-number">{copy.stat1Num}</span>
                 <span className="stat-label">{copy.stat1Label}</span>
               </li>
-              <li className="about-stat-item">
+              <li
+                className="about-stat-item scroll-reveal-item"
+                data-scroll-reveal=""
+                style={{ '--reveal-idx': 5 } as React.CSSProperties}
+              >
                 <span className="stat-number">{copy.stat2Num}</span>
                 <span className="stat-label">{copy.stat2Label}</span>
               </li>
-              <li className="about-stat-item">
+              <li
+                className="about-stat-item scroll-reveal-item"
+                data-scroll-reveal=""
+                style={{ '--reveal-idx': 6 } as React.CSSProperties}
+              >
                 <span className="stat-number">{copy.stat3Num}</span>
                 <span className="stat-label">{copy.stat3Label}</span>
               </li>
             </ul>
 
-            <div className="about-cta-row">
+            <div
+              className="about-cta-row scroll-reveal-item"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 7 } as React.CSSProperties}
+            >
               <button
                 type="button"
                 className="suites-book-btn about-explore-btn"
@@ -278,7 +315,11 @@ export const AboutSection: React.FC<AboutSectionProps> = memo(
 
           {/* Right Architectural Visual Composition */}
           <div className="about-visual-col">
-            <div className="about-arch-frame">
+            <div
+              className="about-arch-frame scroll-reveal-item scroll-reveal-scale"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 2 } as React.CSSProperties}
+            >
               <img
                 src={copy.mainImage}
                 alt={copy.mainAlt}
@@ -291,7 +332,11 @@ export const AboutSection: React.FC<AboutSectionProps> = memo(
               <div className="about-img-vignette" aria-hidden="true" />
             </div>
 
-            <div className="about-floating-card">
+            <div
+              className="about-floating-card scroll-reveal-item scroll-reveal-float"
+              data-scroll-reveal=""
+              style={{ '--reveal-idx': 4 } as React.CSSProperties}
+            >
               <img
                 src={copy.floatingImage}
                 alt={copy.floatingAlt}

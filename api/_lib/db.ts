@@ -182,6 +182,7 @@ function writeLocalDb(state: LocalDatabaseState): void {
 }
 
 let neonSchemaInitialized = false;
+let neonSchemaInitPromise: Promise<void> | null = null;
 
 async function getNeonClient() {
   const dbUrl = process.env.DATABASE_URL?.trim();
@@ -189,129 +190,137 @@ async function getNeonClient() {
   const sql = neon(dbUrl);
 
   if (!neonSchemaInitialized) {
-    await sql`
-      CREATE TABLE IF NOT EXISTS units (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        unit_number TEXT NOT NULL DEFAULT '',
-        tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR',
-        description TEXT NOT NULL DEFAULT '',
-        beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas',
-        capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa',
-        max_guests INTEGER NOT NULL DEFAULT 4,
-        cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg',
-        gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb,
-        weekday_rate INTEGER NOT NULL DEFAULT 85,
-        weekend_rate INTEGER NOT NULL DEFAULT 110,
-        cleaning_fee INTEGER NOT NULL DEFAULT 15,
-        min_nights INTEGER NOT NULL DEFAULT 1,
-        dual_discount_percent INTEGER NOT NULL DEFAULT 10,
-        airbnb_ical_url TEXT,
-        booking_ical_url TEXT,
-        last_ical_sync_at TIMESTAMPTZ
-      );
-    `;
-
-    // Safe migrations for existing Neon tables
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS unit_number TEXT NOT NULL DEFAULT '';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS max_guests INTEGER NOT NULL DEFAULT 4;`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg';`;
-    await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb;`;
-
-    await sql`
-      CREATE TABLE IF NOT EXISTS seasonal_rates (
-        id SERIAL PRIMARY KEY,
-        unit_id TEXT NOT NULL,
-        label TEXT NOT NULL,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        nightly_rate INTEGER NOT NULL,
-        min_nights INTEGER NOT NULL DEFAULT 2,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS bookings (
-        id TEXT PRIMARY KEY,
-        booking_code TEXT NOT NULL UNIQUE,
-        unit_selection TEXT NOT NULL,
-        check_in TEXT NOT NULL,
-        check_out TEXT NOT NULL,
-        nights INTEGER NOT NULL,
-        adults INTEGER NOT NULL,
-        children INTEGER NOT NULL DEFAULT 0,
-        guest_name TEXT NOT NULL,
-        guest_phone TEXT NOT NULL,
-        guest_email TEXT NOT NULL,
-        special_requests TEXT,
-        total_price_usd INTEGER NOT NULL,
-        price_breakdown_json JSONB NOT NULL,
-        status TEXT NOT NULL DEFAULT 'PENDING',
-        expires_at TIMESTAMPTZ NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS calendar_blocks (
-        id SERIAL PRIMARY KEY,
-        unit_id TEXT NOT NULL,
-        source TEXT NOT NULL,
-        external_uid TEXT NOT NULL,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        summary TEXT NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE(unit_id, source, external_uid)
-      );
-    `;
-
-    const existingUnits = await sql`SELECT COUNT(*)::int AS cnt FROM units`;
-    if ((existingUnits[0]?.cnt ?? 0) === 0) {
-      for (const u of DEFAULT_UNITS) {
+    if (!neonSchemaInitPromise) {
+      neonSchemaInitPromise = (async () => {
         await sql`
-          INSERT INTO units (
-            id, name, unit_number, tagline, description, beds_label, capacity_label,
-            max_guests, cover_image, gallery_images_json,
-            weekday_rate, weekend_rate, cleaning_fee, min_nights, dual_discount_percent
-          )
-          VALUES (
-            ${u.id}, ${u.name}, ${u.unitNumber || ''}, ${u.tagline || ''}, ${u.description || ''},
-            ${u.bedsLabel || ''}, ${u.capacityLabel || ''}, ${u.maxGuests || 4},
-            ${u.coverImage || ''}, ${JSON.stringify(u.galleryImages || [])}::jsonb,
-            ${u.weekdayRate}, ${u.weekendRate}, ${u.cleaningFee}, ${u.minNights}, ${u.dualDiscountPercent}
-          )
-          ON CONFLICT (id) DO NOTHING;
+          CREATE TABLE IF NOT EXISTS units (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            unit_number TEXT NOT NULL DEFAULT '',
+            tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR',
+            description TEXT NOT NULL DEFAULT '',
+            beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas',
+            capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa',
+            max_guests INTEGER NOT NULL DEFAULT 4,
+            cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg',
+            gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+            weekday_rate INTEGER NOT NULL DEFAULT 85,
+            weekend_rate INTEGER NOT NULL DEFAULT 110,
+            cleaning_fee INTEGER NOT NULL DEFAULT 15,
+            min_nights INTEGER NOT NULL DEFAULT 1,
+            dual_discount_percent INTEGER NOT NULL DEFAULT 10,
+            airbnb_ical_url TEXT,
+            booking_ical_url TEXT,
+            last_ical_sync_at TIMESTAMPTZ
+          );
         `;
-      }
-    } else {
-      // Backfill metadata on default units if they were created prior to metadata columns
-      for (const u of DEFAULT_UNITS) {
+
+        // Safe migrations for existing Neon tables
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS unit_number TEXT NOT NULL DEFAULT '';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS tagline TEXT NOT NULL DEFAULT 'FULL EQUIPADA · VISTA AL MAR';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS beds_label TEXT NOT NULL DEFAULT '2 Camas de 2 Plazas';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS capacity_label TEXT NOT NULL DEFAULT 'Makana Resort · Tonsupa';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS max_guests INTEGER NOT NULL DEFAULT 4;`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS cover_image TEXT NOT NULL DEFAULT '/images/apt-612/apt612-4.jpg';`;
+        await sql`ALTER TABLE units ADD COLUMN IF NOT EXISTS gallery_images_json JSONB NOT NULL DEFAULT '[]'::jsonb;`;
+
         await sql`
-          UPDATE units
-          SET unit_number = CASE WHEN unit_number = '' THEN ${u.unitNumber || ''} ELSE unit_number END,
-              description = CASE WHEN description = '' THEN ${u.description || ''} ELSE description END,
-              cover_image = CASE WHEN cover_image = '' OR (id = 'suite-311' AND cover_image = '/images/apt-612/apt612-4.jpg') THEN ${u.coverImage || ''} ELSE cover_image END,
-              gallery_images_json = CASE WHEN gallery_images_json = '[]'::jsonb THEN ${JSON.stringify(u.galleryImages || [])}::jsonb ELSE gallery_images_json END
-          WHERE id = ${u.id};
+          CREATE TABLE IF NOT EXISTS seasonal_rates (
+            id SERIAL PRIMARY KEY,
+            unit_id TEXT NOT NULL,
+            label TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            nightly_rate INTEGER NOT NULL,
+            min_nights INTEGER NOT NULL DEFAULT 2,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          );
         `;
-      }
+        await sql`
+          CREATE TABLE IF NOT EXISTS bookings (
+            id TEXT PRIMARY KEY,
+            booking_code TEXT NOT NULL UNIQUE,
+            unit_selection TEXT NOT NULL,
+            check_in TEXT NOT NULL,
+            check_out TEXT NOT NULL,
+            nights INTEGER NOT NULL,
+            adults INTEGER NOT NULL,
+            children INTEGER NOT NULL DEFAULT 0,
+            guest_name TEXT NOT NULL,
+            guest_phone TEXT NOT NULL,
+            guest_email TEXT NOT NULL,
+            special_requests TEXT,
+            total_price_usd INTEGER NOT NULL,
+            price_breakdown_json JSONB NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            expires_at TIMESTAMPTZ NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          );
+        `;
+        await sql`
+          CREATE TABLE IF NOT EXISTS calendar_blocks (
+            id SERIAL PRIMARY KEY,
+            unit_id TEXT NOT NULL,
+            source TEXT NOT NULL,
+            external_uid TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            UNIQUE(unit_id, source, external_uid)
+          );
+        `;
+
+        const existingUnits = await sql`SELECT COUNT(*)::int AS cnt FROM units`;
+        if ((existingUnits[0]?.cnt ?? 0) === 0) {
+          for (const u of DEFAULT_UNITS) {
+            await sql`
+              INSERT INTO units (
+                id, name, unit_number, tagline, description, beds_label, capacity_label,
+                max_guests, cover_image, gallery_images_json,
+                weekday_rate, weekend_rate, cleaning_fee, min_nights, dual_discount_percent
+              )
+              VALUES (
+                ${u.id}, ${u.name}, ${u.unitNumber || ''}, ${u.tagline || ''}, ${u.description || ''},
+                ${u.bedsLabel || ''}, ${u.capacityLabel || ''}, ${u.maxGuests || 4},
+                ${u.coverImage || ''}, ${JSON.stringify(u.galleryImages || [])}::jsonb,
+                ${u.weekdayRate}, ${u.weekendRate}, ${u.cleaningFee}, ${u.minNights}, ${u.dualDiscountPercent}
+              )
+              ON CONFLICT (id) DO NOTHING;
+            `;
+          }
+        } else {
+          // Backfill metadata on default units if they were created prior to metadata columns
+          for (const u of DEFAULT_UNITS) {
+            await sql`
+              UPDATE units
+              SET unit_number = CASE WHEN unit_number = '' THEN ${u.unitNumber || ''} ELSE unit_number END,
+                  description = CASE WHEN description = '' THEN ${u.description || ''} ELSE description END,
+                  cover_image = CASE WHEN cover_image = '' OR (id = 'suite-311' AND cover_image = '/images/apt-612/apt612-4.jpg') THEN ${u.coverImage || ''} ELSE cover_image END,
+                  gallery_images_json = CASE WHEN gallery_images_json = '[]'::jsonb THEN ${JSON.stringify(u.galleryImages || [])}::jsonb ELSE gallery_images_json END
+              WHERE id = ${u.id};
+            `;
+          }
+        }
+
+        const existingSeasons = await sql`SELECT COUNT(*)::int AS cnt FROM seasonal_rates`;
+        if ((existingSeasons[0]?.cnt ?? 0) === 0) {
+          for (const s of DEFAULT_SEASONAL_RATES) {
+            await sql`
+              INSERT INTO seasonal_rates (unit_id, label, start_date, end_date, nightly_rate, min_nights)
+              VALUES (${s.unitId}, ${s.label}, ${s.startDate}, ${s.endDate}, ${s.nightlyRate}, ${s.minNights});
+            `;
+          }
+        }
+
+        neonSchemaInitialized = true;
+      })().catch((err) => {
+        neonSchemaInitPromise = null;
+        throw err;
+      });
     }
-
-    const existingSeasons = await sql`SELECT COUNT(*)::int AS cnt FROM seasonal_rates`;
-    if ((existingSeasons[0]?.cnt ?? 0) === 0) {
-      for (const s of DEFAULT_SEASONAL_RATES) {
-        await sql`
-          INSERT INTO seasonal_rates (unit_id, label, start_date, end_date, nightly_rate, min_nights)
-          VALUES (${s.unitId}, ${s.label}, ${s.startDate}, ${s.endDate}, ${s.nightlyRate}, ${s.minNights});
-        `;
-      }
-    }
-
-    neonSchemaInitialized = true;
+    await neonSchemaInitPromise;
   }
 
   return sql;

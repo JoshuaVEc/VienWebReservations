@@ -182,6 +182,7 @@ export const BookingDialog: React.FC<BookingDialogProps> = memo(
       if (!isOpen || !checkIn || !checkOut || checkIn >= checkOut) {
         setIsAvailable(null);
         setPricePreview(null);
+        setIsCheckingAvail(false);
         return;
       }
 
@@ -189,28 +190,31 @@ export const BookingDialog: React.FC<BookingDialogProps> = memo(
       setIsCheckingAvail(true);
       setErrorMsg(null);
 
-      fetch(
-        `/api/availability?unit=${encodeURIComponent(selectedSuite)}&checkIn=${encodeURIComponent(
-          checkIn
-        )}&checkOut=${encodeURIComponent(checkOut)}`,
-        { signal: controller.signal }
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          setIsAvailable(typeof data.available === 'boolean' ? data.available : null);
-          setPricePreview(data.pricing || null);
-        })
-        .catch((err) => {
-          if (err instanceof DOMException && err.name === 'AbortError') return;
-          setIsAvailable(null);
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) {
-            setIsCheckingAvail(false);
-          }
-        });
+      const debounceTimer = window.setTimeout(() => {
+        fetch(
+          `/api/availability?unit=${encodeURIComponent(selectedSuite)}&checkIn=${encodeURIComponent(
+            checkIn
+          )}&checkOut=${encodeURIComponent(checkOut)}`,
+          { signal: controller.signal }
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            setIsAvailable(typeof data.available === 'boolean' ? data.available : null);
+            setPricePreview(data.pricing || null);
+          })
+          .catch((err) => {
+            if (err instanceof DOMException && err.name === 'AbortError') return;
+            setIsAvailable(null);
+          })
+          .finally(() => {
+            if (!controller.signal.aborted) {
+              setIsCheckingAvail(false);
+            }
+          });
+      }, 160);
 
       return () => {
+        window.clearTimeout(debounceTimer);
         controller.abort();
       };
     }, [isOpen, selectedSuite, checkIn, checkOut]);
