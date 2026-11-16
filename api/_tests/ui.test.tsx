@@ -15,6 +15,26 @@ import {
   buildDynamicHeroSlides,
 } from '../../src/data/heroSlides.js';
 
+if (typeof (globalThis as any).document === 'undefined') {
+  (globalThis as any).document = {
+    documentElement: { lang: 'es' },
+    title: '',
+  };
+}
+if (typeof (globalThis as any).window === 'undefined') {
+  (globalThis as any).window = {
+    location: { pathname: '/', search: '' },
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    setTimeout: globalThis.setTimeout.bind(globalThis),
+    clearTimeout: globalThis.clearTimeout.bind(globalThis),
+  };
+}
+if (typeof (globalThis as any).requestAnimationFrame === 'undefined') {
+  (globalThis as any).requestAnimationFrame = () => 0;
+  (globalThis as any).cancelAnimationFrame = () => {};
+}
+
 type AnyElement = React.ReactElement<Record<string, any>>;
 
 function withStatelessHooks<T>(fn: () => T): T {
