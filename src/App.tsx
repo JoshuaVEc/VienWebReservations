@@ -155,15 +155,29 @@ export const App: React.FC = () => {
   }, [handleNext, handlePrev, isBookingOpen, isAdminRoute]);
 
   const currentReview = REVIEW_ITEMS[activeReviewIdx];
+  const isMultiPageSection = isHome || isSuites;
 
   const syncCapsuleThumb = useCallback(() => {
     const shell = scrollShellRef.current;
     const thumb = capsuleThumbRef.current;
     if (!shell || !thumb) return;
-    const maxScroll = shell.scrollHeight - shell.clientHeight;
-    const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, shell.scrollTop / maxScroll)) : 0;
-    thumb.style.transform = `translate3d(0, ${ratio * 200}%, 0)`;
-  }, []);
+
+    const maxScroll = isMultiPageSection ? shell.scrollHeight - shell.clientHeight : 0;
+    if (maxScroll <= 4) {
+      thumb.style.height = '100%';
+      thumb.style.transform = 'translate3d(0, 0%, 0)';
+      return;
+    }
+
+    const pageCount = shell.scrollHeight / Math.max(1, shell.clientHeight);
+    const thumbHeightPct = pageCount <= 2.2 ? 100 / 3 : Math.max(18, 100 / pageCount);
+    const maxTravelPct = ((100 - thumbHeightPct) / thumbHeightPct) * 100;
+    const ratio = Math.min(1, Math.max(0, shell.scrollTop / maxScroll));
+    const travelPct = Math.round(ratio * maxTravelPct * 100) / 100;
+
+    thumb.style.height = pageCount <= 2.2 ? '33.333%' : `${Math.round(thumbHeightPct * 100) / 100}%`;
+    thumb.style.transform = `translate3d(0, ${travelPct}%, 0)`;
+  }, [isMultiPageSection]);
 
   // Synchronize capsule scrollbar thumb smoothly with vertical scroll & tab changes
   useEffect(() => {
@@ -182,6 +196,7 @@ export const App: React.FC = () => {
 
   const scrollToTrackEvent = useCallback(
     (clientY: number, behavior: ScrollBehavior) => {
+      if (!isMultiPageSection) return;
       const track = capsuleTrackRef.current;
       const shell = scrollShellRef.current;
       if (!track || !shell) return;
@@ -192,7 +207,7 @@ export const App: React.FC = () => {
       shell.scrollTo({ top: ratio * maxScroll, behavior });
       syncCapsuleThumb();
     },
-    [syncCapsuleThumb]
+    [isMultiPageSection, syncCapsuleThumb]
   );
 
   const handleCapsuleTrackPointerDown = useCallback(
@@ -675,9 +690,11 @@ export const App: React.FC = () => {
           )}
         </div>
 
-        {/* CAPSULE SCROLLBAR INDICATOR (Smooth vertical tracking across all sections) */}
+        {/* CAPSULE SCROLLBAR INDICATOR (Smooth vertical tracking & single/multi-page adaptation) */}
         <div
-          className="vien-capsule-scrollbar is-scroll-driven"
+          className={`vien-capsule-scrollbar ${
+            isMultiPageSection ? 'is-multi-page' : 'is-single-page'
+          }`}
           role="scrollbar"
           aria-label={lang === 'en' ? 'Vertical Page Scrollbar' : 'Barra de desplazamiento vertical'}
           aria-orientation="vertical"

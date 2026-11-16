@@ -244,7 +244,7 @@ const mockCapsuleTrack = {
 };
 
 const mockCapsuleThumb = {
-  style: { transform: 'translate3d(0, 0%, 0)' },
+  style: { height: '33.333%', transform: 'translate3d(0, 0%, 0)' },
 };
 
 refStore[0].current = mockScrollShell;
@@ -367,25 +367,69 @@ assert.equal(
   'El thumb de la scrollbar debe llegar al borde inferior (200%)'
 );
 
-// Switch pages (HOME -> SUITES -> GALLERY -> REVIEWS) and verify vertical scroll & scrollbar thumb stay in place!
-const navPillsInApp = collectElements(
+// Switch between multi-page tabs (HOME -> SUITES) and single-page tabs (GALLERY -> REVIEWS)
+let navPillsInApp = collectElements(
   tree,
   (el) => el.type === 'button' && String(el.props.className || '').includes('nav-pill')
 );
-for (const navBtn of navPillsInApp) {
-  navBtn.props.onClick();
-  tree = renderAppWithHooks();
-  assert.equal(
-    mockScrollShell.scrollTop,
-    1000,
-    'Cambiar de pestaña debe conservar la posición vertical actual'
-  );
-  assert.equal(
-    mockCapsuleThumb.style.transform,
-    'translate3d(0, 200%, 0)',
-    'El thumb de la scrollbar debe mantener la posición vertical al cambiar de pestaña'
-  );
-}
+
+// 1) Switch to SUITES (multi-page): keeps vertical scroll and multi-page thumb height
+navPillsInApp[1].props.onClick();
+tree = renderAppWithHooks();
+for (const eff of effectStore) eff();
+assert.equal(
+  mockScrollShell.scrollTop,
+  1000,
+  'Cambiar de HOME a SUITES debe conservar la posición vertical actual'
+);
+assert.equal(
+  mockCapsuleThumb.style.height,
+  '33.333%',
+  'En vista de varias páginas (SUITES), el thumb debe medir 33.333%'
+);
+assert.equal(
+  mockCapsuleThumb.style.transform,
+  'translate3d(0, 200%, 0)',
+  'El thumb de la scrollbar debe mantener la posición vertical en SUITES'
+);
+
+// 2) Switch to GALLERY (single-page): adapts to 100% thumb height
+navPillsInApp = collectElements(
+  tree,
+  (el) => el.type === 'button' && String(el.props.className || '').includes('nav-pill')
+);
+navPillsInApp[2].props.onClick();
+tree = renderAppWithHooks();
+for (const eff of effectStore) eff();
+assert.equal(
+  mockCapsuleThumb.style.height,
+  '100%',
+  'En vista de 1 sola página (GALLERY), el thumb debe adaptarse al 100% de la cápsula'
+);
+assert.equal(
+  mockCapsuleThumb.style.transform,
+  'translate3d(0, 0%, 0)',
+  'En vista de 1 sola página (GALLERY), el thumb debe ubicarse en 0%'
+);
+
+// 3) Switch back to HOME (multi-page): restores multi-page thumb height & saved vertical scroll position
+navPillsInApp = collectElements(
+  tree,
+  (el) => el.type === 'button' && String(el.props.className || '').includes('nav-pill')
+);
+navPillsInApp[0].props.onClick();
+tree = renderAppWithHooks();
+for (const eff of effectStore) eff();
+assert.equal(
+  mockCapsuleThumb.style.height,
+  '33.333%',
+  'Al volver a HOME (varias páginas), el thumb debe volver a 33.333%'
+);
+assert.equal(
+  mockCapsuleThumb.style.transform,
+  'translate3d(0, 200%, 0)',
+  'Al volver a HOME, el thumb debe recuperar la posición vertical donde estaba el usuario'
+);
 console.log(
   '   ✓ Todos los botones de contenido y la scrollbar (clic, arrastre y conservación vertical entre páginas) funcionan correctamente.'
 );

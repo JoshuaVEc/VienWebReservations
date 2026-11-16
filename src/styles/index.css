@@ -539,8 +539,21 @@ body {
   transform: translate3d(0, 0%, 0);
   transition:
     transform 0.28s var(--silky-ease),
+    height 0.38s var(--silky-ease),
+    opacity 0.35s var(--silky-ease),
     background-color 0.3s ease;
-  will-change: transform;
+  will-change: transform, height;
+}
+
+.vien-capsule-scrollbar.is-single-page .vien-capsule-track {
+  height: clamp(2.4rem, 5.5vh, 3.2rem);
+  opacity: 0.65;
+  cursor: default;
+}
+
+.vien-capsule-scrollbar.is-single-page .vien-capsule-thumb {
+  height: 100%;
+  transform: translate3d(0, 0%, 0);
 }
 
 .choreographed-stage {
