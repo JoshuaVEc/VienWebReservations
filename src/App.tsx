@@ -605,11 +605,12 @@ export const App: React.FC = () => {
             </aside>
           </main>
 
-          {/* 2ND SECTION OF HOME: Left blank, ready for future VIEN content */}
+          {/* 2ND SECTION OF HOME: Vien Vacation Home — Quiénes Somos */}
           {isHome && (
-            <section
-              className="about-section home-blank-section"
-              aria-label="Vien Vacation Home"
+            <AboutSection
+              variant="home"
+              lang={lang}
+              onExploreSuites={() => handleSelectNav('SUITES')}
             />
           )}
 
