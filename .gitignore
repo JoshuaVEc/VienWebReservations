@@ -12,7 +12,8 @@ dist
 dist-ssr
 *.local
 .env
-data/
+/data/
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*

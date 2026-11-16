@@ -57,6 +57,8 @@ export const App: React.FC = () => {
   const scrollShellRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const progressCounterRef = useRef<HTMLSpanElement>(null);
+  const capsuleTrackRef = useRef<HTMLDivElement>(null);
+  const capsuleThumbRef = useRef<HTMLDivElement>(null);
 
   const t = UI_TEXT[lang];
   const safeActiveIndex = activeIndex < heroSlides.length ? activeIndex : 0;
@@ -157,6 +159,81 @@ export const App: React.FC = () => {
   }, [handleNext, handlePrev, isBookingOpen, isAdminRoute]);
 
   const currentReview = REVIEW_ITEMS[activeReviewIdx];
+
+  const isScrollableShell = isHome || isSuites;
+
+  // Synchronize capsule scrollbar thumb across all views (scroll fallback + stepped views)
+  useEffect(() => {
+    const thumb = capsuleThumbRef.current;
+    const shell = scrollShellRef.current;
+    if (!thumb) return;
+
+    if (!isScrollableShell) {
+      const stepRatio = isReviews
+        ? REVIEW_ITEMS.length > 1
+          ? activeReviewIdx / (REVIEW_ITEMS.length - 1)
+          : 0
+        : activeGalleryFilter === 'ALL'
+        ? 0
+        : activeGalleryFilter === 'ARCH'
+        ? 0.5
+        : 1;
+      thumb.style.transform = `translate3d(0, ${stepRatio * 200}%, 0)`;
+      return;
+    }
+
+    const supportsScrollTimeline =
+      typeof CSS !== 'undefined' &&
+      typeof CSS.supports === 'function' &&
+      CSS.supports('animation-timeline', 'scroll()');
+
+    const updateFromScroll = () => {
+      if (!shell || ! capsuleThumbRef.current) return;
+      const maxScroll = shell.scrollHeight - shell.clientHeight;
+      const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, shell.scrollTop / maxScroll)) : 0;
+      capsuleThumbRef.current.style.transform = `translate3d(0, ${ratio * 200}%, 0)`;
+    };
+
+    updateFromScroll();
+
+    if (!supportsScrollTimeline && shell) {
+      shell.addEventListener('scroll', updateFromScroll, { passive: true });
+      window.addEventListener('resize', updateFromScroll);
+      return () => {
+        shell.removeEventListener('scroll', updateFromScroll);
+        window.removeEventListener('resize', updateFromScroll);
+      };
+    }
+  }, [isScrollableShell, isReviews, activeReviewIdx, activeGalleryFilter]);
+
+  const handleCapsuleTrackPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const track = capsuleTrackRef.current;
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      const rawRatio = (e.clientY - rect.top) / rect.height;
+      const ratio = Math.min(1, Math.max(0, rawRatio));
+
+      if (isHome || isSuites) {
+        const shell = scrollShellRef.current;
+        if (!shell) return;
+        const maxScroll = shell.scrollHeight - shell.clientHeight;
+        shell.scrollTo({ top: ratio * maxScroll, behavior: 'smooth' });
+      } else if (isReviews) {
+        const targetIdx = Math.min(
+          REVIEW_ITEMS.length - 1,
+          Math.floor(ratio * REVIEW_ITEMS.length)
+        );
+        setActiveReviewIdx(targetIdx);
+        handleSelectSlide(REVIEW_ITEMS[targetIdx].slideIndex);
+      } else if (isGallery) {
+        const filters: Array<'ALL' | 'ARCH' | 'OASIS'> = ['ALL', 'ARCH', 'OASIS'];
+        const targetFilter = filters[Math.min(2, Math.floor(ratio * 3))];
+        setActiveGalleryFilter(targetFilter);
+      }
+    },
+    [isHome, isSuites, isReviews, isGallery, handleSelectSlide]
+  );
 
   const filteredGallery = useMemo(
     () =>
@@ -618,6 +695,22 @@ export const App: React.FC = () => {
           {isSuites && (
             <AboutSection lang={lang} onExploreSuites={handleOpenBooking} />
           )}
+        </div>
+
+        {/* CAPSULE SCROLLBAR INDICATOR (Across all sections with project choreography) */}
+        <div
+          className={`vien-capsule-scrollbar ${
+            isScrollableShell ? 'is-scroll-driven' : 'is-step-driven'
+          }`}
+          aria-hidden="true"
+        >
+          <div
+            ref={capsuleTrackRef}
+            className="vien-capsule-track"
+            onPointerDown={handleCapsuleTrackPointerDown}
+          >
+            <div ref={capsuleThumbRef} className="vien-capsule-thumb" />
+          </div>
         </div>
       </div>
 
