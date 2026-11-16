@@ -7,7 +7,13 @@ import { App } from '../../src/App.js';
 import { Navbar } from '../../src/components/Navbar.js';
 import { AboutSection } from '../../src/components/AboutSection.js';
 import { BookingDialog } from '../../src/components/BookingDialog.js';
-import { HERO_SLIDES, NAV_ITEMS, REVIEW_ITEMS } from '../../src/data/heroSlides.js';
+import {
+  HERO_SLIDES,
+  NAV_ITEMS,
+  REVIEW_ITEMS,
+  buildDynamicGalleryItems,
+  buildDynamicHeroSlides,
+} from '../../src/data/heroSlides.js';
 
 type AnyElement = React.ReactElement<Record<string, any>>;
 
@@ -439,5 +445,95 @@ assert.ok(submitBtn, 'Debe existir el botón enviar .dialog-submit-btn en Bookin
 closeBtn.props.onClick();
 cancelBtn.props.onClick();
 console.log('   ✓ Botones de <BookingDialog /> (.dialog-close-btn, .dialog-secondary-btn y .dialog-submit-btn) verificados.');
+
+console.log('7. Probando cambio de idioma EN/ES en todas las secciones y al agregar nuevas suites dinámicas...');
+const dynamicUnits = [
+  {
+    id: 'depto-612',
+    name: 'Departamento 612 — Full Equipado | Vista al Mar',
+    unitNumber: '612',
+    tagline: 'FULL EQUIPADO · VISTA AL MAR',
+    description:
+      'Ubicado en Makana Resort — Tonsupa. Cuenta con 2 camas de 2 plazas, sillón y mesa comedor y cocina equipada.',
+    bedsLabel: '2 Camas de 2 Plazas · Sillón y Mesa Comedor',
+    capacityLabel: 'Makana Resort · Tonsupa',
+    maxGuests: 4,
+    weekdayRate: 85,
+    weekendRate: 110,
+  },
+  {
+    id: 'suite-311',
+    name: 'Suite 311 — Tercer Piso | 49 m² | Vista al Mar',
+    unitNumber: '311',
+    tagline: 'TERCER PISO · 49 M² · VISTA AL MAR',
+    description: 'Ubicada en el tercer piso con 2 camas de 2 plazas y sofá cama.',
+    bedsLabel: '2 Camas de 2 Plazas + Sofá Cama',
+    capacityLabel: 'Tercer Piso · 49 m² · Makana Resort',
+    maxGuests: 4,
+    weekdayRate: 85,
+    weekendRate: 110,
+  },
+  {
+    id: 'suite-504',
+    name: 'Departamento 504 — Quinto Piso | Vista al Mar',
+    unitNumber: '504',
+    tagline: 'QUINTO PISO · FULL EQUIPADO · VISTA AL MAR',
+    description: 'Ubicado en Makana Resort con 2 Camas King y Sofá Cama.',
+    bedsLabel: '2 Camas King + Sofá Cama',
+    capacityLabel: 'Quinto Piso · Hasta 5 Huéspedes',
+    maxGuests: 5,
+    weekdayRate: 95,
+    weekendRate: 125,
+  },
+];
+
+const dynSlides = buildDynamicHeroSlides(dynamicUnits);
+assert.equal(dynSlides.length, 4, 'Deben generarse 4 slides (1 combinada + 3 suites)');
+
+// Verify newly added Suite 504 translates between ES and EN
+const slide504 = dynSlides[3];
+assert.equal(slide504.titleLine1.es, 'DEPARTAMENTO 504');
+assert.equal(slide504.titleLine1.en, 'APARTMENT 504');
+assert.ok(slide504.titleLine2.es.includes('QUINTO PISO') && slide504.titleLine2.es.includes('VISTA AL MAR'));
+assert.ok(slide504.titleLine2.en.includes('5TH FLOOR') && slide504.titleLine2.en.includes('OCEAN VIEW'));
+assert.ok(slide504.bedsLabel.es.includes('Camas King') && slide504.bedsLabel.es.includes('Sofá Cama'));
+assert.ok(slide504.bedsLabel.en.includes('King Beds') && slide504.bedsLabel.en.includes('Sofa Bed'));
+assert.ok(slide504.capacityLabel.en.includes('5th Floor') && slide504.capacityLabel.en.includes('Up to 5 Guests'));
+
+const dynGallery = buildDynamicGalleryItems(dynamicUnits);
+const gal504 = dynGallery.find((g) => g.id === 'gal-unit-suite-504');
+assert.ok(gal504, 'La nueva suite 504 debe aparecer en la galería dinámica');
+assert.ok(gal504.title.en.includes('APARTMENT 504') && gal504.title.en.includes('OCEAN VIEW'));
+assert.ok(gal504.title.es.includes('DEPARTAMENTO 504') && gal504.title.es.includes('VISTA AL MAR'));
+assert.ok(gal504.location.en.includes('KING BEDS') && gal504.location.en.includes('SOFA BED'));
+
+// Verify AboutSection dynamically lists 612, 311 & 504 in both EN and ES
+const dynAboutEnHtml = renderToStaticMarkup(
+  React.createElement(AboutSection, {
+    variant: 'suites',
+    lang: 'en',
+    units: dynamicUnits,
+    onExploreSuites: () => {},
+  })
+);
+const dynAboutEsHtml = renderToStaticMarkup(
+  React.createElement(AboutSection, {
+    variant: 'suites',
+    lang: 'es',
+    units: dynamicUnits,
+    onExploreSuites: () => {},
+  })
+);
+assert.ok(
+  dynAboutEnHtml.includes('RESERVE 612 &amp; 311 &amp; 504') &&
+    dynAboutEnHtml.includes('Apartment 504'),
+  'AboutSection en inglés debe incluir la nueva suite 504 traducida'
+);
+assert.ok(
+  dynAboutEsHtml.includes('RESERVAR 612 Y 311 Y 504') &&
+    dynAboutEsHtml.includes('Departamento 504'),
+  'AboutSection en español debe incluir la nueva suite 504'
+);
+console.log('   ✓ Traducción EN/ES verificada en todas las vistas y para nuevas suites agregadas.');
 
 console.log('\n✅ TODAS LAS PRUEBAS DE UI, BOTONES Y SCROLLBAR PASARON EXITOSAMENTE.');

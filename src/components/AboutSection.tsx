@@ -1,10 +1,17 @@
 import React, { memo } from 'react';
-import { HERO_SLIDES, Language } from '../data/heroSlides';
+import {
+  DynamicUnitMetadata,
+  HERO_SLIDES,
+  Language,
+  translateSuiteTextToEn,
+  translateSuiteTextToEs,
+} from '../data/heroSlides';
 
 interface AboutSectionProps {
   lang: Language;
   onExploreSuites: () => void;
   variant?: 'home' | 'suites';
+  units?: DynamicUnitMetadata[] | null;
 }
 
 const HOME_ABOUT_COPY = {
@@ -149,9 +156,67 @@ const SUITES_ABOUT_COPY = {
 };
 
 export const AboutSection: React.FC<AboutSectionProps> = memo(
-  ({ lang, onExploreSuites, variant = 'suites' }) => {
-    const copy = variant === 'home' ? HOME_ABOUT_COPY[lang] : SUITES_ABOUT_COPY[lang];
+  ({ lang, onExploreSuites, variant = 'suites', units }) => {
+    const baseCopy = variant === 'home' ? HOME_ABOUT_COPY[lang] : SUITES_ABOUT_COPY[lang];
     const headingId = variant === 'home' ? 'home-about-heading' : 'about-heading';
+
+    const hasCustomUnits = variant === 'suites' && Array.isArray(units) && units.length > 0;
+    const unitNumbers = hasCustomUnits
+      ? units.map((u) => u.unitNumber || u.id.replace(/[^0-9a-zA-Z]/g, '').toUpperCase())
+      : [];
+    const joinedNumsEn = unitNumbers.join(' & ');
+    const joinedNumsEs = unitNumbers.join(' Y ');
+
+    const dynamicSuitesLead = hasCustomUnits ? (
+      lang === 'en' ? (
+        <>
+          Welcome to <strong>Vien Vacation Home</strong> at <strong>Makana Resort — Tonsupa</strong>.
+          Located right on the beachfront, we offer {units.length} exclusive, fully equipped
+          ocean-view residences:{' '}
+          {units.map((u, idx) => {
+            const titleEn = translateSuiteTextToEn(u.name.split('—')[0].trim());
+            const bedsEn = translateSuiteTextToEn(u.bedsLabel || 'Full Equipped');
+            return (
+              <React.Fragment key={u.id}>
+                {idx > 0 ? (idx === units.length - 1 ? ' and ' : ', ') : ''}
+                <strong>{titleEn}</strong> ({bedsEn})
+              </React.Fragment>
+            );
+          })}
+          .
+        </>
+      ) : (
+        <>
+          Bienvenido a <strong>Vien Vacation Home</strong> en <strong>Makana Resort — Tonsupa</strong>.
+          Ubicados en primera línea de playa, ofrecemos {units.length} unidades exclusivas full
+          equipadas con vista al mar:{' '}
+          {units.map((u, idx) => {
+            const titleEs = translateSuiteTextToEs(u.name.split('—')[0].trim());
+            const bedsEs = translateSuiteTextToEs(u.bedsLabel || 'Full Equipada');
+            return (
+              <React.Fragment key={u.id}>
+                {idx > 0 ? (idx === units.length - 1 ? ' y ' : ', ') : ''}
+                <strong>{titleEs}</strong> ({bedsEs})
+              </React.Fragment>
+            );
+          })}
+          .
+        </>
+      )
+    ) : (
+      baseCopy.lead
+    );
+
+    const copy = hasCustomUnits
+      ? {
+          ...baseCopy,
+          lead: dynamicSuitesLead,
+          stat1Num: lang === 'en' ? joinedNumsEn : joinedNumsEs,
+          cta: lang === 'en' ? `RESERVE ${joinedNumsEn}` : `RESERVAR ${joinedNumsEs}`,
+          floatingTag:
+            lang === 'en' ? `SUITES ${joinedNumsEn}` : `SUITES ${joinedNumsEs}`,
+        }
+      : baseCopy;
 
     return (
       <section className="about-section" aria-labelledby={headingId}>

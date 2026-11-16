@@ -136,7 +136,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     unitNumber: '612',
     indexLabel: '02/',
     titleLine1: {
-      en: 'DEPARTAMENTO 612',
+      en: 'APARTMENT 612',
       es: 'DEPARTAMENTO 612',
     },
     titleLine2: {
@@ -437,6 +437,90 @@ export interface DynamicUnitMetadata {
   weekendRate: number;
 }
 
+const ES_TO_EN_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bDepartamento\b/gi, 'Apartment'],
+  [/\bDepto\.?\b/gi, 'Apt'],
+  [/\bFull Equipad[oa]s?\b/gi, 'Full Equipped'],
+  [/\bTotalmente Equipad[oa]s?\b/gi, 'Fully Equipped'],
+  [/\bBalcón con Vista al Mar\b/gi, 'Ocean-View Balcony'],
+  [/\bVista al Mar\b/gi, 'Ocean View'],
+  [/\bFrente al Mar\b/gi, 'Beachfront'],
+  [/\bPrimera Línea de Playa\b/gi, 'Beachfront'],
+  [/\bPrimer Piso\b/gi, '1st Floor'],
+  [/\bSegundo Piso\b/gi, '2nd Floor'],
+  [/\bTercer Piso\b/gi, '3rd Floor'],
+  [/\bCuarto Piso\b/gi, '4th Floor'],
+  [/\bQuinto Piso\b/gi, '5th Floor'],
+  [/\bSexto Piso\b/gi, '6th Floor'],
+  [/\bSéptimo Piso\b/gi, '7th Floor'],
+  [/\bOctavo Piso\b/gi, '8th Floor'],
+  [/\bNoveno Piso\b/gi, '9th Floor'],
+  [/\bDécimo Piso\b/gi, '10th Floor'],
+  [/\bPiso\s+(\d+)\b/gi, 'Floor $1'],
+  [/\bCamas de 2 Plazas\b/gi, 'Beds (2 Plazas)'],
+  [/\bCama de 2 Plazas\b/gi, 'Bed (2 Plazas)'],
+  [/\bCamas King\b/gi, 'King Beds'],
+  [/\bCama King\b/gi, 'King Bed'],
+  [/\bCamas Queen\b/gi, 'Queen Beds'],
+  [/\bCama Queen\b/gi, 'Queen Bed'],
+  [/\bSofá Cama\b/gi, 'Sofa Bed'],
+  [/\bSillón y Mesa Comedor\b/gi, 'Armchair & Dining Table'],
+  [/\b[ÁA]rea de Sala-Comedor\b/gi, 'Living-Dining Area'],
+  [/\bSala-Comedor\b/gi, 'Living-Dining'],
+  [/\bCocina Equipada\b/gi, 'Equipped Kitchen'],
+  [/\bAire Acondicionado\b/gi, 'Air Conditioning'],
+  [/\bBaño Moderno\b/gi, 'Modern Bathroom'],
+  [/\bTerraza Panorámica\b/gi, 'Panoramic Terrace'],
+  [/\bUbicad[oa] en el\b/gi, 'Located on the'],
+  [/\bUbicad[oa] en\b/gi, 'Located at'],
+  [/\bCuenta con\b/gi, 'Features'],
+  [/\bcon\b/gi, 'with'],
+  [/\bHasta\s+(\d+)\s+Huéspedes\b/gi, 'Up to $1 Guests'],
+  [/\b(\d+)\s+Huéspedes\b/gi, '$1 Guests'],
+  [/\b(\d+)\s+Personas\b/gi, '$1 Guests'],
+  [/\s+y\s+/gi, ' & '],
+];
+
+const EN_TO_ES_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bApartment\b/gi, 'Departamento'],
+  [/\bFull Equipped\b/gi, 'Full Equipado'],
+  [/\bFully Equipped\b/gi, 'Totalmente Equipado'],
+  [/\bOcean-View Balcony\b/gi, 'Balcón con Vista al Mar'],
+  [/\bOcean View\b/gi, 'Vista al Mar'],
+  [/\bBeachfront\b/gi, 'Frente al Mar'],
+  [/\b1st Floor\b/gi, 'Primer Piso'],
+  [/\b2nd Floor\b/gi, 'Segundo Piso'],
+  [/\b3rd Floor\b/gi, 'Tercer Piso'],
+  [/\b4th Floor\b/gi, 'Cuarto Piso'],
+  [/\b5th Floor\b/gi, 'Quinto Piso'],
+  [/\bFloor\s+(\d+)\b/gi, 'Piso $1'],
+  [/\bBeds \(2 Plazas\)\b/gi, 'Camas de 2 Plazas'],
+  [/\bBed \(2 Plazas\)\b/gi, 'Cama de 2 Plazas'],
+  [/\bSofa Bed\b/gi, 'Sofá Cama'],
+  [/\bArmchair & Dining Table\b/gi, 'Sillón y Mesa Comedor'],
+  [/\bLiving-Dining Area\b/gi, 'Área de Sala-Comedor'],
+  [/\bEquipped Kitchen\b/gi, 'Cocina Equipada'],
+  [/\bAir Conditioning\b/gi, 'Aire Acondicionado'],
+  [/\bModern Bathroom\b/gi, 'Baño Moderno'],
+  [/\bUp to\s+(\d+)\s+Guests\b/gi, 'Hasta $1 Huéspedes'],
+];
+
+export function translateSuiteTextToEn(raw: string): string {
+  let out = raw;
+  for (const [pattern, replacement] of ES_TO_EN_REPLACEMENTS) {
+    out = out.replace(pattern, replacement);
+  }
+  return out;
+}
+
+export function translateSuiteTextToEs(raw: string): string {
+  let out = raw;
+  for (const [pattern, replacement] of EN_TO_ES_REPLACEMENTS) {
+    out = out.replace(pattern, replacement);
+  }
+  return out;
+}
+
 export function buildDynamicHeroSlides(units?: DynamicUnitMetadata[] | null): HeroSlide[] {
   if (!units || units.length === 0) {
     return HERO_SLIDES;
@@ -460,15 +544,17 @@ export function buildDynamicHeroSlides(units?: DynamicUnitMetadata[] | null): He
       es: `Hasta ${totalGuests} Huéspedes · Makana Resort`,
     },
     bedsLabel: {
-      en: `${units.length} Exclusive Suites`,
-      es: `${units.length} Suites Exclusivas`,
+      en: `${units.length} Exclusive Suites (${unitNums})`,
+      es: `${units.length} Suites Exclusivas (${unitNums})`,
     },
     maxGuests: totalGuests,
   };
 
   const unitSlides: HeroSlide[] = units.map((u, idx) => {
     const existingDefault = HERO_SLIDES.find((s) => s.id === u.id);
-    const shortTitle = u.name.split('—')[0].trim().toUpperCase();
+    const shortTitleRaw = u.name.split('—')[0].trim();
+    const shortTitleEs = translateSuiteTextToEs(shortTitleRaw).toUpperCase();
+    const shortTitleEn = translateSuiteTextToEn(shortTitleRaw).toUpperCase();
     const indexStr = `${String(idx + 2).padStart(2, '0')}/`;
     const coverImg =
       u.coverImage ||
@@ -476,38 +562,43 @@ export function buildDynamicHeroSlides(units?: DynamicUnitMetadata[] | null): He
       existingDefault?.image ||
       '/images/apt-612/apt612-4.jpg';
 
+    const rawTagline = u.tagline || existingDefault?.titleLine2.es || 'FULL EQUIPADA · VISTA AL MAR';
+    const rawDesc = u.description || existingDefault?.subtitle.es || u.name;
+    const rawCap = u.capacityLabel || existingDefault?.capacityLabel.es || 'Makana Resort · Tonsupa';
+    const rawBeds = u.bedsLabel || existingDefault?.bedsLabel.es || '2 Camas de 2 Plazas';
+
     return {
       id: u.id,
-      unitNumber: u.unitNumber || existingDefault?.unitNumber || shortTitle,
+      unitNumber: u.unitNumber || existingDefault?.unitNumber || shortTitleEs,
       indexLabel: indexStr,
       titleLine1: {
-        en: shortTitle,
-        es: shortTitle,
+        en: shortTitleEn,
+        es: shortTitleEs,
       },
       titleLine2: {
-        en: (u.tagline || existingDefault?.titleLine2.en || 'FULL EQUIPPED · OCEAN VIEW').toUpperCase(),
-        es: (u.tagline || existingDefault?.titleLine2.es || 'FULL EQUIPADA · VISTA AL MAR').toUpperCase(),
+        en: translateSuiteTextToEn(rawTagline).toUpperCase(),
+        es: translateSuiteTextToEs(rawTagline).toUpperCase(),
       },
       subtitle: {
-        en: u.description || existingDefault?.subtitle.en || u.name,
-        es: u.description || existingDefault?.subtitle.es || u.name,
+        en: translateSuiteTextToEn(rawDesc),
+        es: translateSuiteTextToEs(rawDesc),
       },
       image: coverImg,
       thumbnailAlt: {
-        en: `${u.name} — Makana Resort Tonsupa`,
-        es: `${u.name} — Makana Resort Tonsupa`,
+        en: `${translateSuiteTextToEn(u.name)} — Makana Resort Tonsupa`,
+        es: `${translateSuiteTextToEs(u.name)} — Makana Resort Tonsupa`,
       },
       suiteName: {
-        en: u.name,
-        es: u.name,
+        en: translateSuiteTextToEn(u.name),
+        es: translateSuiteTextToEs(u.name),
       },
       capacityLabel: {
-        en: u.capacityLabel || existingDefault?.capacityLabel.en || 'Makana Resort · Tonsupa',
-        es: u.capacityLabel || existingDefault?.capacityLabel.es || 'Makana Resort · Tonsupa',
+        en: translateSuiteTextToEn(rawCap),
+        es: translateSuiteTextToEs(rawCap),
       },
       bedsLabel: {
-        en: u.bedsLabel || existingDefault?.bedsLabel.en || '2 Beds (2 Plazas)',
-        es: u.bedsLabel || existingDefault?.bedsLabel.es || '2 Camas de 2 Plazas',
+        en: translateSuiteTextToEn(rawBeds),
+        es: translateSuiteTextToEs(rawBeds),
       },
       maxGuests: u.maxGuests || existingDefault?.maxGuests || 4,
       nightlyRate: {
@@ -526,34 +617,38 @@ export function buildDynamicGalleryItems(units?: DynamicUnitMetadata[] | null): 
     return GALLERY_ITEMS;
   }
 
-  const facilityItems = GALLERY_ITEMS.filter((item) => item.aspect === 'wide' || item.id === 'gal-5' || item.id === 'gal-6');
+  const facilityItems = GALLERY_ITEMS.filter(
+    (item) => item.aspect === 'wide' || item.id === 'gal-5' || item.id === 'gal-6'
+  );
   const dynamicSuiteCards: GalleryItem[] = units.map((u, idx) => {
     const img =
       u.coverImage ||
       (u.galleryImages && u.galleryImages[0]) ||
       '/images/apt-612/apt612-2.jpg';
     const numStr = String(idx + 1).padStart(2, '0');
-    const shortTitle = u.name.split('—')[0].trim().toUpperCase();
+    const shortTitleRaw = u.name.split('—')[0].trim();
+    const rawBeds = u.bedsLabel || 'FULL EQUIPADA · VISTA AL MAR';
+    const rawDesc = u.description || u.name;
 
     return {
       id: `gal-unit-${u.id}`,
       code: {
-        en: `${numStr} / ${shortTitle}`,
-        es: `${numStr} / ${shortTitle}`,
+        en: `${numStr} / ${translateSuiteTextToEn(shortTitleRaw).toUpperCase()}`,
+        es: `${numStr} / ${translateSuiteTextToEs(shortTitleRaw).toUpperCase()}`,
       },
       title: {
-        en: u.name.toUpperCase(),
-        es: u.name.toUpperCase(),
+        en: translateSuiteTextToEn(u.name).toUpperCase(),
+        es: translateSuiteTextToEs(u.name).toUpperCase(),
       },
       location: {
-        en: (u.bedsLabel || 'FULL EQUIPPED · OCEAN VIEW').toUpperCase(),
-        es: (u.bedsLabel || 'FULL EQUIPADA · VISTA AL MAR').toUpperCase(),
+        en: translateSuiteTextToEn(rawBeds).toUpperCase(),
+        es: translateSuiteTextToEs(rawBeds).toUpperCase(),
       },
       aspect: idx % 2 === 0 ? 'arch' : 'tall',
       image: img,
       caption: {
-        en: u.description || u.name,
-        es: u.description || u.name,
+        en: translateSuiteTextToEn(rawDesc),
+        es: translateSuiteTextToEs(rawDesc),
       },
     };
   });

@@ -526,11 +526,21 @@ export const BookingDialog: React.FC<BookingDialogProps> = memo(
                     value={adultsIdx}
                     onChange={(e) => setAdultsIdx(Number(e.target.value))}
                   >
-                    {copy.adultsOptions.map((opt, i) => (
-                      <option key={opt} value={i}>
-                        {opt}
-                      </option>
-                    ))}
+                    {copy.adultsOptions.map((opt, i) => {
+                      const combinedMax = slides[0]?.maxGuests || 8;
+                      const combinedNums = slides[0]?.unitNumber || (lang === 'en' ? '612 & 311' : '612 y 311');
+                      const label =
+                        i === 4
+                          ? lang === 'en'
+                            ? `5–${combinedMax} Guests (All Suites: ${combinedNums})`
+                            : `5–${combinedMax} Personas (Todas las Unidades: ${combinedNums.replace(/&/g, 'y')})`
+                          : opt;
+                      return (
+                        <option key={opt} value={i}>
+                          {label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div className="form-field">

@@ -35,7 +35,7 @@ export const App: React.FC = () => {
   const [liveUnits, setLiveUnits] = useState<DynamicUnitMetadata[] | null>(null);
 
   const refreshLiveUnits = useCallback(() => {
-    fetch('/api/availability')
+    fetch(`/api/availability?t=${Date.now()}`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && Array.isArray(data.units) && data.units.length > 0) {
@@ -380,8 +380,8 @@ export const App: React.FC = () => {
 
                 <div className="suites-heading-block">
                   <h2 className="suites-main-title suites-choreo-item suites-choreo-title">
-                    <span>MAKANA RESORT · TONSUPA</span>
                     <span>{currentSlide.titleLine1[lang]}</span>
+                    <span>{currentSlide.titleLine2[lang]}</span>
                   </h2>
                   <p className="suites-subtitle suites-choreo-item suites-choreo-subtitle">
                     {currentSlide.capacityLabel[lang]} · {currentSlide.bedsLabel[lang]} ·{' '}
@@ -663,6 +663,7 @@ export const App: React.FC = () => {
           <AboutSection
             variant={isHome ? 'home' : 'suites'}
             lang={lang}
+            units={liveUnits}
             onExploreSuites={isHome ? () => handleSelectNav('SUITES') : handleOpenBooking}
           />
         </div>
@@ -671,7 +672,7 @@ export const App: React.FC = () => {
         <div
           className="vien-capsule-scrollbar is-scroll-driven"
           role="scrollbar"
-          aria-label="Vertical Page Scrollbar"
+          aria-label={lang === 'en' ? 'Vertical Page Scrollbar' : 'Barra de desplazamiento vertical'}
           aria-orientation="vertical"
           aria-valuemin={0}
           aria-valuemax={100}
