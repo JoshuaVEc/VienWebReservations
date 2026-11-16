@@ -113,11 +113,7 @@ export const App: React.FC = () => {
   }, []);
 
   const handleSelectNav = useCallback((label: NavSection) => {
-    setActiveNav((prev) => {
-      if (label === prev) return prev;
-      scrollShellRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-      return label;
-    });
+    setActiveNav((prev) => (label === prev ? prev : label));
   }, []);
 
   const handleSelectSlide = useCallback((targetIndex: number) => {
@@ -160,79 +156,65 @@ export const App: React.FC = () => {
 
   const currentReview = REVIEW_ITEMS[activeReviewIdx];
 
-  const isScrollableShell = isHome || isSuites;
-
-  // Synchronize capsule scrollbar thumb across all views (scroll fallback + stepped views)
-  useEffect(() => {
-    const thumb = capsuleThumbRef.current;
+  const syncCapsuleThumb = useCallback(() => {
     const shell = scrollShellRef.current;
-    if (!thumb) return;
+    const thumb = capsuleThumbRef.current;
+    if (!shell || !thumb) return;
+    const maxScroll = shell.scrollHeight - shell.clientHeight;
+    const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, shell.scrollTop / maxScroll)) : 0;
+    thumb.style.transform = `translate3d(0, ${ratio * 200}%, 0)`;
+  }, []);
 
-    if (!isScrollableShell) {
-      const stepRatio = isReviews
-        ? REVIEW_ITEMS.length > 1
-          ? activeReviewIdx / (REVIEW_ITEMS.length - 1)
-          : 0
-        : activeGalleryFilter === 'ALL'
-        ? 0
-        : activeGalleryFilter === 'ARCH'
-        ? 0.5
-        : 1;
-      thumb.style.transform = `translate3d(0, ${stepRatio * 200}%, 0)`;
-      return;
-    }
+  // Synchronize capsule scrollbar thumb smoothly with vertical scroll & tab changes
+  useEffect(() => {
+    const shell = scrollShellRef.current;
+    if (!shell) return;
 
-    const supportsScrollTimeline =
-      typeof CSS !== 'undefined' &&
-      typeof CSS.supports === 'function' &&
-      CSS.supports('animation-timeline', 'scroll()');
+    syncCapsuleThumb();
 
-    const updateFromScroll = () => {
-      if (!shell || ! capsuleThumbRef.current) return;
-      const maxScroll = shell.scrollHeight - shell.clientHeight;
-      const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, shell.scrollTop / maxScroll)) : 0;
-      capsuleThumbRef.current.style.transform = `translate3d(0, ${ratio * 200}%, 0)`;
+    shell.addEventListener('scroll', syncCapsuleThumb, { passive: true });
+    window.addEventListener('resize', syncCapsuleThumb);
+    return () => {
+      shell.removeEventListener('scroll', syncCapsuleThumb);
+      window.removeEventListener('resize', syncCapsuleThumb);
     };
+  }, [syncCapsuleThumb, activeNav]);
 
-    updateFromScroll();
-
-    if (!supportsScrollTimeline && shell) {
-      shell.addEventListener('scroll', updateFromScroll, { passive: true });
-      window.addEventListener('resize', updateFromScroll);
-      return () => {
-        shell.removeEventListener('scroll', updateFromScroll);
-        window.removeEventListener('resize', updateFromScroll);
-      };
-    }
-  }, [isScrollableShell, isReviews, activeReviewIdx, activeGalleryFilter]);
+  const scrollToTrackEvent = useCallback(
+    (clientY: number, behavior: ScrollBehavior) => {
+      const track = capsuleTrackRef.current;
+      const shell = scrollShellRef.current;
+      if (!track || !shell) return;
+      const rect = track.getBoundingClientRect();
+      const rawRatio = (clientY - rect.top) / rect.height;
+      const ratio = Math.min(1, Math.max(0, rawRatio));
+      const maxScroll = shell.scrollHeight - shell.clientHeight;
+      shell.scrollTo({ top: ratio * maxScroll, behavior });
+      syncCapsuleThumb();
+    },
+    [syncCapsuleThumb]
+  );
 
   const handleCapsuleTrackPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      const track = capsuleTrackRef.current;
-      if (!track) return;
-      const rect = track.getBoundingClientRect();
-      const rawRatio = (e.clientY - rect.top) / rect.height;
-      const ratio = Math.min(1, Math.max(0, rawRatio));
-
-      if (isHome || isSuites) {
-        const shell = scrollShellRef.current;
-        if (!shell) return;
-        const maxScroll = shell.scrollHeight - shell.clientHeight;
-        shell.scrollTo({ top: ratio * maxScroll, behavior: 'smooth' });
-      } else if (isReviews) {
-        const targetIdx = Math.min(
-          REVIEW_ITEMS.length - 1,
-          Math.floor(ratio * REVIEW_ITEMS.length)
-        );
-        setActiveReviewIdx(targetIdx);
-        handleSelectSlide(REVIEW_ITEMS[targetIdx].slideIndex);
-      } else if (isGallery) {
-        const filters: Array<'ALL' | 'ARCH' | 'OASIS'> = ['ALL', 'ARCH', 'OASIS'];
-        const targetFilter = filters[Math.min(2, Math.floor(ratio * 3))];
-        setActiveGalleryFilter(targetFilter);
+      if (typeof e.currentTarget.setPointerCapture === 'function') {
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          // Ignore in synthetic test environments
+        }
       }
+      scrollToTrackEvent(e.clientY, 'smooth');
     },
-    [isHome, isSuites, isReviews, isGallery, handleSelectSlide]
+    [scrollToTrackEvent]
+  );
+
+  const handleCapsuleTrackPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.buttons !== 1) return;
+      scrollToTrackEvent(e.clientY, 'auto');
+    },
+    [scrollToTrackEvent]
   );
 
   const filteredGallery = useMemo(
@@ -311,12 +293,7 @@ export const App: React.FC = () => {
         />
 
         {/* UNIFIED SCROLL SHELL INSIDE FIXED ARTIFICIAL WINDOW */}
-        <div
-          ref={scrollShellRef}
-          className={`unified-scroll-shell ${
-            isHome || isSuites ? 'scroll-enabled-home' : 'scroll-locked-suites'
-          }`}
-        >
+        <div ref={scrollShellRef} className="unified-scroll-shell scroll-enabled-home">
           {/* PERSISTENT CHOREOGRAPHED STAGE */}
           <main
             className={`choreographed-stage stage-${activeNav.toLowerCase()}`}
@@ -682,32 +659,28 @@ export const App: React.FC = () => {
             </aside>
           </main>
 
-          {/* 2ND SECTION OF HOME: Vien Vacation Home — Quiénes Somos */}
-          {isHome && (
-            <AboutSection
-              variant="home"
-              lang={lang}
-              onExploreSuites={() => handleSelectNav('SUITES')}
-            />
-          )}
-
-          {/* 2ND SECTION OF SUITES: Makana Suites Editorial Details */}
-          {isSuites && (
-            <AboutSection lang={lang} onExploreSuites={handleOpenBooking} />
-          )}
+          {/* 2ND SECTION: Editorial About Section (Preserves vertical scroll across all pages) */}
+          <AboutSection
+            variant={isHome ? 'home' : 'suites'}
+            lang={lang}
+            onExploreSuites={isHome ? () => handleSelectNav('SUITES') : handleOpenBooking}
+          />
         </div>
 
-        {/* CAPSULE SCROLLBAR INDICATOR (Across all sections with project choreography) */}
+        {/* CAPSULE SCROLLBAR INDICATOR (Smooth vertical tracking across all sections) */}
         <div
-          className={`vien-capsule-scrollbar ${
-            isScrollableShell ? 'is-scroll-driven' : 'is-step-driven'
-          }`}
-          aria-hidden="true"
+          className="vien-capsule-scrollbar is-scroll-driven"
+          role="scrollbar"
+          aria-label="Vertical Page Scrollbar"
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={100}
         >
           <div
             ref={capsuleTrackRef}
             className="vien-capsule-track"
             onPointerDown={handleCapsuleTrackPointerDown}
+            onPointerMove={handleCapsuleTrackPointerMove}
           >
             <div ref={capsuleThumbRef} className="vien-capsule-thumb" />
           </div>

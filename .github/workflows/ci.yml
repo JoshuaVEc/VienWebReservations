@@ -2,9 +2,9 @@ name: CI & Vercel Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, preview]
   pull_request:
-    branches: [main]
+    branches: [main, preview]
 
 jobs:
   quality-and-build:
@@ -29,6 +29,9 @@ jobs:
 
       - name: Run Automated Backend & Suite Tests
         run: npx tsx api/_tests/backend.test.ts
+
+      - name: Run Automated UI Buttons & Scrollbar Tests
+        run: npx tsx api/_tests/ui.test.tsx
 
       - name: Build project
         run: npm run build

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "tsx api/_tests/backend.test.ts && tsx api/_tests/ui.test.tsx",
     "lint": "eslint .",
     "preview": "vite preview"
   },
